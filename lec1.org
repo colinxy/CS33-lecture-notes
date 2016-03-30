@@ -1,0 +1,118 @@
+#+TITLE: Lecture 1
+#+DATE:  <2016-03-28 Mon>
+
+* Bits, Bytes, and Integers
+
+- Bit is 0 or 1
+- Electronic Implementation
+  - High voltage: 1, low voltage: 0
+- Byte is 8 bits
+  - hex: 00 - FF
+  - write 0x123f in C
+
+** Boolean Algebra
+
+- And &
+- Or  |
+- Not ~
+- Xor ^
+
+76543210
+01101001  {0, 3, 5, 6}
+01010101  {0, 2, 4, 6}
+
+- operate on bit vectors
+- Representing and Manipulation of Sets
+
+  - & intersection          {0, 6}
+  - | union                 {0, 2, 3, 4, 5, 6}
+  - ^ symmetric difference  {2, 3, 4, 5}
+  - ~ complement
+
+- logical operator  && || !
+  - 0 as False
+  - return 0 or 1
+  - early termination
+  - example:  p && *p  avoids null pointer access
+
+- Shift Operations
+  - left shift   x << y
+  - right shift  x >> y
+    - logical shift: pad with 0
+    - arithmetic shift: pad with left most bit
+
+11100010
+
+00010000  << 3
+00111000  Log. >> 2
+11111000  Arith. >> 2
+
+
+** Integer
+
+- Unsigned
+- Signed
+  - 2's complement
+  - sign bit: most significant
+
+15213
+00111011 01101101
+
+-15213
+11000100 10010011
+
+
+-15213 represented in binary
+| binary |        |        |
+|--------+--------+--------|
+|      1 |      1 |      1 |
+|      1 |      2 |      2 |
+|      0 |      4 |      0 |
+|      0 |      8 |      0 |
+|      1 |     16 |     16 |
+|      0 |     32 |      0 |
+|      0 |     64 |      0 |
+|      1 |    128 |    128 |
+|      0 |    256 |      0 |
+|      0 |    512 |      0 |
+|      1 |   1024 |   1024 |
+|      0 |   2048 |      0 |
+|      0 |   4096 |      0 |
+|      0 |   8192 |      0 |
+|      1 |  16384 |  16384 |
+|      1 | -32768 | -32768 |
+|        |        | -15213 |
+
+
+- Numerical Range
+  - Unsigned
+    - umin: 0
+    - umax: 2**w - 1
+  - Signed
+    - tmin: -2**(w-1)
+    - tmax: 2**(w-1) - 1
+
+- Constants
+  - unsigned: 4243653U
+- Casting
+  - mix of unsigned and signed:
+    signed are implicitly cast to unsigned
+
+
+W = 32
+TMIN = -2147483648, TMAX = 2147483647
+
+|       const1 |           const2 | result |          |
+|--------------+------------------+--------+----------|
+|           -1 |                0 | <      | signed   |
+|           -1 |               0U | >      | unsigned |
+|   2147483647 |    -2147483647-1 | >      | signed   |
+|  2147483647U |    -2147483647-1 | <      | unsigned |
+| (unsigned)-1 |               -2 | >      | unsigned |
+|   2147483647 |      2147483648U | <      | unsigned |
+|   2147483647 | (int)2147483648U | >      | signed   |
+
+- Sign Extension
+  - w-bit signed integer
+  - convert to w+k-bit integer with same value
+  - make k copies of signed bit

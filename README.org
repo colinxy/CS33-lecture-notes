@@ -1,0 +1,6 @@
+#+TITLE: CS33 Lecture Notes
+
+* Goal
+
+The goal of this repo is to get familiar with taking notes in
+emacs org-mode, and of course help myself review notes easily.

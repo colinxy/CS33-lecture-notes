@@ -17,17 +17,17 @@
  - Xor ^
 
 *** example
-76543210
+=76543210=
 
-01101001:  {0, 3, 5, 6}
+=01101001:  {0, 3, 5, 6} in bit set=
 
-01010101:  {0, 2, 4, 6}
+=01010101:  {0, 2, 4, 6} in bit set=
 
  - operate on bit vectors
  - Representing and Manipulation of Sets
-   - & intersection          {0, 6}
-   - | union                 {0, 2, 3, 4, 5, 6}
-   - ^ symmetric difference  {2, 3, 4, 5}
+   - & intersection          ={0, 6}=
+   - | union                 ={0, 2, 3, 4, 5, 6}=
+   - ^ symmetric difference  ={2, 3, 4, 5}=
    - ~ complement
 
 *** contrast to logic operation
@@ -35,11 +35,11 @@
      - 0 as False
      - return 0 or 1
      - early termination
-     - example:  p && *p  avoids null pointer access
+     - example:  =p && *p=  avoids null pointer access
 
 *** Shift Operation
-   - left shift   x << y
-   - right shift  x >> y
+   - left shift   =x << y=
+   - right shift  =x >> y=
      - logical shift: pad with 0
      - arithmetic shift: pad with left most bit
    - undefined behavior
@@ -64,13 +64,13 @@
 
 *** example
 
- 15213
+ =15213=
 
- 00111011 01101101
+ =00111011 01101101=
 
- -15213
+ =-15213=
 
- 11000100 10010011
+ =11000100 10010011=
 
  | -15213 in binary | weight |  value |                       |
  |------------------+--------+--------+-----------------------|
@@ -137,8 +137,8 @@
 
 **** Observation
 
- - | TMIN | = TMAX + 1
- - UMAX = 2 * TMAX + 1
+ - =| TMIN | = TMAX + 1=
+ - =UMAX = 2 * TMAX + 1=
  - For C programming
 
 #+BEGIN_SRC C
@@ -170,11 +170,11 @@
  - convert to w+k-bit integer with same value
  - make k copies of signed bit
 
-| word size | decimal |         hex |                                 bin |
-|           |         |         <r> |                                 <r> |
-|-----------+---------+-------------+-------------------------------------|
-|         2 |  -15213 |       C4 93 |                   11000100 10010011 |
-|         4 |  -15213 | FF FF C4 93 | 11111111 11111111 11000100 10010011 |
+| word size | decimal |           hex |                                   bin |
+|           |         |           <r> |                                   <r> |
+|-----------+---------+---------------+---------------------------------------|
+|         2 |  -15213 |       =C4 93= |                   =11000100 10010011= |
+|         4 |  -15213 | =FF FF C4 93= | =11111111 11111111 11000100 10010011= |
 
 #+CAPTION: sign extension
 #+ATTR_HTML: :width 500px

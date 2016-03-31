@@ -1,0 +1,50 @@
+#+DATE: <2016-03-30 Wed>
+
+* Integer
+
+** Addition
+
+Tadd and Uadd has identical bit-level operation
+
+modular arithmetic
+ - add(u, v) = (u + v) % (2 ** w)
+
+* Byte-Oriented Memery Organization
+
+** Address specify byte location
+ - Address of first byte in word
+ - Address of successive words differ
+   depending on word size
+
+** Byte Ordering
+
+Endianness
+
+ - Big Endian: least significant bit has highest address
+ - Little Endian: least significant bit has lowest address
+
+*** String
+
+ - array of characters
+ - byte ordering not an issue
+ - high addresses, latter elements
+
+#+BEGIN_SRC C
+
+int ix;
+unsigned ux;
+
+#+END_SRC
+
+#+CAPTION: Integer C puzzles
+| condition                  | statement      | result | note                    |
+|----------------------------+----------------+--------+-------------------------|
+| ix & 7 == 7                | (ix << 30) < 0 | true   |                         |
+| ux >= 0                    |                | true   |                         |
+| ix * ix >= 0               |                | false  |                         |
+| ix >= 0                    | -ix <= 0       | true   |                         |
+| ix <= 0                    | -ix >= 0       | false  | =abs(TMIN) > abs(TMAX)= |
+| (ix \vert -ix) >> 31 == -1 |                | true   |                         |
+| ux >> 3 == ux / 8          |                | true   |                         |
+| ix >> 3 == ix / 8          |                | false  |                         |
+| x & (x - 1) != 0           |                | false  | x == 0                  |

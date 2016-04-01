@@ -97,10 +97,10 @@
  - Numerical Range
    - Unsigned
      - umin: 0
-     - umax: 2**w - 1
+     - umax: 2^{w} - 1
    - Signed
-     - tmin: -2**(w-1)
-     - tmax: 2**(w-1) - 1
+     - tmin: -2^{w-1}
+     - tmax: 2^{w-1} - 1
 
 |    X |   B2U(X) | B2T(X) |
 |      | unsigned | signed |
@@ -151,8 +151,11 @@
 #+END_SRC
 
 *** example
- W = 32 (word size)
- TMIN = -2147483648, TMAX = 2147483647
+ =W = 32 (word size)=
+
+ =TMIN = -2147483648=
+
+ =TMAX = 2147483647=
 
  |       const1 |           const2 | result |          |
  |--------------+------------------+--------+----------|

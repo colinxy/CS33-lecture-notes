@@ -4,15 +4,69 @@
 
 ** Addition
 
+unsigned addition implements modular arithmetic
+ - Uadd(u, v) = (u + v) % 2^{w}
+
 Tadd and Uadd has identical bit-level operation
 
-modular arithmetic
- - add(u, v) = (u + v) % (2 ** w)
+#+BEGIN_SRC C
+
+int a, b;
+int Usum, Tsum;
+Usum = (int) ((unsigned) a + (unsigned) b);
+Tsum = a + b;
+
+#+END_SRC
+
+#+CAPTION: unsigned addition overflow
+#+ATTR_HTML: :width 500px
+[[./res/unsigned_overflow.png]]
+#+CAPTION: unsigned addition overflow
+#+ATTR_HTML: :width 500px
+[[./res/unsigned_addition.png]]
+#+CAPTION: signed addition overflow
+#+ATTR_HTML: :width 500px
+[[./res/signed_overflow.png]]
+#+CAPTION: unsigned addition overflow
+#+ATTR_HTML: :width 500px
+[[./res/signed_addition.png]]
+
+** Multiplication
+
+ignores higher order w bits
+
+unsigned multiplication implements modular arithmetic
+ - Umult(u, v) = (u * v) % 2^{w}
+
+*** power of 2 multiply with shift
+
+~(u << 5) - (u << 3) == u * 24~
+
+ - most machines shift and add faster than multiply
+   - use this method for static code, i.e. compile-time constants
+
+*** power of 2 unsigned division with shift
+
+ - use logical shift: pad with 0
+
+u >> k == floor(u / 2^{k})
+
+| operation | decimal |     hex |                 bin |
+|           |         |     <r> |                 <r> |
+|-----------+---------+---------+---------------------|
+| x         | 15213U  | =3B 6D= | =00111011 01101101= |
+| x >> 1    | 7606U   | =1D B6= | =00011101 10110110= |
+| y         | 240U    |    =F0= |          =11110000= |
+| y >> 2    | 60U     |    =3C= |          =00111100= |
+
 
 * Byte-Oriented Memery Organization
 
+word size
+ - nominal size of integer value and address
+
 ** Address specify byte location
- - Address of first byte in word
+ - _Address of first byte in word_
  - Address of successive words differ
    depending on word size
 
@@ -23,23 +77,34 @@ Endianness
  - Big Endian: least significant bit has highest address
  - Little Endian: least significant bit has lowest address
 
+| address       | 0x100 | 0x101 | 0x102 | 0x103 |
+| big endian    |    01 |    23 |    45 |    67 |
+| little endian |    67 |    45 |    23 |    01 |
+
+#+BEGIN_SRC C
+
+printf("%p", address);
+printf("%x", hexadecimal);
+
+#+END_SRC
+
 *** String
 
  - array of characters
  - byte ordering not an issue
- - high addresses, latter elements
+ - high addresses, latter elements(character)
+
+*** example
 
 #+BEGIN_SRC C
-
 int ix;
 unsigned ux;
-
 #+END_SRC
 
 #+CAPTION: Integer C puzzles
 | condition                  | statement      | result | note                    |
 |----------------------------+----------------+--------+-------------------------|
-| ix & 7 == 7                | (ix << 30) < 0 | true   |                         |
+| ix & 7 == 7                | (ix << 30) < 0 | true   | last 3 bits are =111=   |
 | ux >= 0                    |                | true   |                         |
 | ix * ix >= 0               |                | false  |                         |
 | ix >= 0                    | -ix <= 0       | true   |                         |

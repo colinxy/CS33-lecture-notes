@@ -17,11 +17,6 @@ def flip(binary):
     return binary.translate(flip_map)
 
 
-def add1(binary):
-    for i in range(-1, 0):
-        pass
-
-
 def pad_space(binary):
     """pad with space every <GROUP_BY> bits
     """
@@ -31,14 +26,15 @@ def pad_space(binary):
     return ''.join(reversed(padded))
 
 
-def _neg(x):
-    """show negative x in binary
+def min_bin(x):
+    """minimal representation of x in binary
     use 2's complement
-
-    used internally, precondition x > 0
     """
-    bits = x.bit_length()
-    return '1' + bin(2 ** bits - x)[2:].rjust(bits, '0')
+    if x >= 0:
+        return '0' + bin(x)[2:]
+    else:
+        bits = x.bit_length()
+        return '1' + bin(2 ** bits - x)[2:].rjust(bits, '0')
 
 
 def bin2(x, bits=32):
@@ -46,22 +42,28 @@ def bin2(x, bits=32):
     use 2's complement
     """
     # minimal representation with 2's complement
-    output = '0' + bin(x)[2:] if x >= 0 else _neg(-x)
+    output = min_bin(x)
 
     if len(output) > bits:
         return pad_space(output[len(output) - bits:])
     return pad_space(output.rjust(bits, output[0]))
 
 
-class Bin(int):
+class BinRepr(int):
 
     def __new__(cls, x, bits=32):
         if isinstance(x, str):
             x = signed(x)
-        return super(Bin, cls).__new__(cls, x)
+        return super(BinRepr, cls).__new__(cls, x)
 
     def __init__(self, x, bits=32):
         self.bits = bits
 
+    def __int__(self):
+        return signed(str(self))
+
     def __str__(self, bits=None):
         return bin2(self, self.bits if bits is None else bits)
+
+    def __repr__(self):
+        return str(int(self))

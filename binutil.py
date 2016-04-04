@@ -33,6 +33,7 @@ def min_bin(x):
     if x >= 0:
         return '0' + bin(x)[2:]
     else:
+        x = -x
         bits = x.bit_length()
         return '1' + bin(2 ** bits - x)[2:].rjust(bits, '0')
 

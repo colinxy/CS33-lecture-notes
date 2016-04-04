@@ -4,3 +4,98 @@
 
 The goal of this repo is to get familiar with taking notes in
 emacs org-mode, and of course help myself review notes easily.
+
+* Usage for binutil.py
+
+This library is best run interactively.
+
+=Binutil.Py= provides an class =Int= for mimicking C signed integers.
+
+#+BEGIN_SRC python
+
+Int(x, bits=32)
+
+#+END_SRC
+
+Integers default to 32 bits. You can also use
+=int()= to extract integer value
+
+#+BEGIN_SRC python
+
+>>> Int(12)
+00000000 00000000 00000000 00001100
+
+>>> Int(-12)
+11111111 11111111 11111111 11110100
+
+>>> x = Int(123)
+>>> x
+00000000 00000000 00000000 01111011
+>>> int(x)
+123
+
+#+END_SRC
+
+Or you can specify a specific number of bits for integers
+to be represented in. Notice for integers too big to be
+represented in the specified number of bits, cast behaves
+exactly as C cast, where the leading bits are truncated
+
+#+BEGIN_SRC python
+
+>>> Int(12, 8)
+00001100
+
+>>> Int(12, 4)
+1100
+
+>>> int(Int(12, 4))
+-4
+
+#+END_SRC
+
+All basic arithmetic and bitwise operators work, including
+=+, -, *, /, &, |, ^, ~, <<, >>=
+
+#+BEGIN_SRC python
+
+>>> x = Int(123)
+>>> x
+00000000 00000000 00000000 01111011
+>>> y = Int(-52)
+>>> y
+11111111 11111111 11111111 11001100
+
+>>> x + y
+00000000 00000000 00000000 01001111
+
+>>> x - y
+00000000 00000000 00000000 10101111
+
+>>> x * y
+11111111 11111111 11100111 00000100
+
+>>> x / y
+11111111 11111111 11111111 11111101
+
+>>> x & y
+00000000 00000000 00000000 01001000
+
+>>> x | y
+11111111 11111111 11111111 11111111
+
+>>> x ^ y
+11111111 11111111 11111111 10110111
+
+>>> ~x
+11111111 11111111 11111111 10000100
+
+>>> x >> 3
+00000000 00000000 00000000 00001111
+
+>>> x << 3
+00000000 00000000 00000011 11011000
+
+#+END_SRC
+
+Happy hacking binary numbers!

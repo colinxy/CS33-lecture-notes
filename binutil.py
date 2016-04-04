@@ -1,5 +1,17 @@
 #! /usr/bin/env python3
 
+"""Python C signed integer/float library
+mimic behavior of C int/float
+"""
+
+# for compatibility with python2
+from __future__ import division
+try:
+    from string import maketrans  # python 2
+except ImportError:
+    maketrans = str.maketrans     # python 3
+
+
 GROUP_BY = 8
 
 
@@ -8,22 +20,22 @@ def signed(binary):
     """
     binary = ''.join(binary.split())
     if binary[0] == '1':
-        return -(int(flip(binary), 2) + 1)
+        return -(int(invert(binary), 2) + 1)
     return int(binary, 2)
 
 
-def flip(binary):
-    flip_map = {ord('0'): '1', ord('1'): '0'}
-    return binary.translate(flip_map)
+def invert(binary):
+    invert_table = maketrans('01', '10')
+    return binary.translate(invert_table)
 
 
 def pad_space(binary):
     """pad with space every <GROUP_BY> bits
     """
-    bin_rev = ''.join(reversed(binary))
+    bin_rev = binary[::-1]
     padded = ' '.join(bin_rev[i: i + GROUP_BY]
                       for i in range(0, len(bin_rev), GROUP_BY))
-    return ''.join(reversed(padded))
+    return padded[::-1]
 
 
 def min_bin(x):
@@ -55,9 +67,8 @@ class Int(int):
     """
 
     def __new__(cls, x, bits=32):
-        """x: int"""
-        if isinstance(x, str):
-            x = signed(x)
+        """Int(x: int, bits: int = 32) -> Int
+        """
         # make sure is negative when 2**(bits-1) < x < 2**bits
         x = signed(bin2(x, bits))
         return super(Int, cls).__new__(cls, x)
@@ -75,36 +86,32 @@ class Int(int):
     def __repr__(self):
         return str(self)
 
-    # always promote to higher precision
-    def _bits(self, value):
-        return max(self.bits, value.bits)
-
     # +
     def __add__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__add__(self, value), bits)
 
     # -
     def __sub__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__sub__(self, value), bits)
 
     # *
     def __mul__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__mul__(self, value), bits)
 
     # /
     def __floordiv__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__floordiv__(self, value), bits)
 
     __truediv__ = __floordiv__
@@ -114,14 +121,14 @@ class Int(int):
     def __and__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__and__(self, value), bits)
 
     # |
     def __or__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__or__(self, value), bits)
 
     # ~
@@ -132,23 +139,23 @@ class Int(int):
     def __xor__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__xor__(self, value), bits)
 
     # <<
     def __lshift__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__lshift__(self, value), bits)
 
     # >>
     def __rshift__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
-        bits = self._bits(value)
+        bits = max(self.bits, value.bits)
         return self.__class__(int.__rshift__(self, value), bits)
 
 
-class Float:
+class Float(float):
     pass

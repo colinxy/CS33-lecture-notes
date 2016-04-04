@@ -1,0 +1,103 @@
+#+DATE: <2016-04-04 Mon>
+
+* Machine Level Programming
+
+ - Architecture: ISA (Instruction Set Architecture)
+
+** Assembly / Machine Code
+
+ - PC (program counter): address of next instruction
+ - register files
+ - condition codes
+ - memory
+
+
+=%rsp %esp= : stack pointer
+
+*** Moving data
+
+ - immediate: constant integer data
+ - register: an integer register
+   e.g. %rax
+ - memory: 8 consecutive bytes of memory at address given by register
+   e.g. (%rax)
+
+#+BEGIN_SRC asm
+
+movq %rax, (%rbx)
+
+#+END_SRC
+
+#+BEGIN_SRC C
+
+int temp;
+int *p;
+
+#+END_SRC
+
+#+CAPTION: movq operand operation
+| source    | destination | assembly code      | C code        |
+|-----------+-------------+--------------------+---------------|
+| immediate | register    | =movq $0x4,%rax=   | temp = 0x4    |
+|           | memory      | =movq $0x4,(%rax)= | *p = 0x4      |
+|-----------+-------------+--------------------+---------------|
+| register  | register    | =movq %rax,%rdx=   | temp2 = temp1 |
+|           | memory      | =movq %rax,(%rdx)= | *p = temp     |
+|-----------+-------------+--------------------+---------------|
+| memory    | register    | =movq (&rax) %rdx= | temp = *p     |
+
+
+memory-memory transfer connot be done with a single instruction
+
+*** simple memory addressing modes
+
+ - normal:
+   - Register R specifies memory address
+   - pointer dereference in C
+   - e.g. =movq (%rax), %rdx=
+
+ - displacement:  =D(R)    MEM[ REG[R] + D ]=
+   - D specify offset
+   - e.g. =movq 8(%rax), %rdx=
+
+| assembly | explanation     | example   |                                                    |
+|----------+-----------------+-----------+----------------------------------------------------|
+| =(R)=    | =MEM[REG[R]]=   | =(%rax)=  | value stored at memory address                     |
+|----------+-----------------+-----------+----------------------------------------------------|
+| =D(R)=   | =MEM[REG[R]+D]= | =8(%rax)= | value stored at memory address with displacement D |
+
+
+**** example: C code translated into assembly
+
+#+BEGIN_SRC C
+
+  void swap(long *xp, long *yp) {
+    long x = *xp;
+    long y = *yp;
+    *xp = y;
+    *yp = x;
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  swap:
+        movq   (%rdi), %rax
+
+#+END_SRC
+
+| register | value | type |
+|----------+-------+------|
+|          |       |      |
+
+**** example
+
+| %rdx |
+|      |
+
+#+CAPTION: address computation
+| expression | address |
+|            |         |
+
+*** Address computation

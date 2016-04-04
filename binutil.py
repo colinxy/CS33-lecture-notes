@@ -50,21 +50,105 @@ def bin2(x, bits=32):
     return pad_space(output.rjust(bits, output[0]))
 
 
-class BinRepr(int):
+class Int(int):
+    """Mimic behavior of C signed int
+    """
 
     def __new__(cls, x, bits=32):
+        """x: int"""
         if isinstance(x, str):
             x = signed(x)
-        return super(BinRepr, cls).__new__(cls, x)
+        # make sure is negative when 2**(bits-1) < x < 2**bits
+        x = signed(bin2(x, bits))
+        return super(Int, cls).__new__(cls, x)
 
     def __init__(self, x, bits=32):
         self.bits = bits
 
-    def __int__(self):
-        return signed(str(self))
+    # def __int__(self):
+    #     # default method might not handle negative numbers correctly
+    #     return signed(str(self))
 
-    def __str__(self, bits=None):
-        return bin2(self, self.bits if bits is None else bits)
+    def __str__(self):
+        return bin2(self, self.bits)
 
     def __repr__(self):
-        return str(int(self))
+        return str(self)
+
+    # always promote to higher precision
+    def _bits(self, value):
+        return max(self.bits, value.bits)
+
+    # +
+    def __add__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__add__(self, value), bits)
+
+    # -
+    def __sub__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__sub__(self, value), bits)
+
+    # *
+    def __mul__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__mul__(self, value), bits)
+
+    # /
+    def __floordiv__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__floordiv__(self, value), bits)
+
+    __truediv__ = __floordiv__
+
+    # bit level
+    # &
+    def __and__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__and__(self, value), bits)
+
+    # |
+    def __or__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__or__(self, value), bits)
+
+    # ~
+    def __invert__(self):
+        return self.__class__(int.__invert__(self), self.bits)
+
+    # ^
+    def __xor__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__xor__(self, value), bits)
+
+    # <<
+    def __lshift__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__lshift__(self, value), bits)
+
+    # >>
+    def __rshift__(self, value):
+        if not isinstance(value, self.__class__):
+            value = self.__class__(value, self.bits)
+        bits = self._bits(value)
+        return self.__class__(int.__rshift__(self, value), bits)
+
+
+class Float:
+    pass

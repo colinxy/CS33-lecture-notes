@@ -28,7 +28,7 @@ in x86-64, each register is of 8 bytes
 | =%rsp=  | =%esp=        | *_stack pointer_*, reserved for special use |
 
 
-*** Moving data
+*** Moving Data
 
 - Operand type
   - immediate: constant integer data
@@ -79,7 +79,8 @@ temp1 = temp2;
 
 #+END_SRC
 
-*** memory addressing modes
+
+*** Memory Addressing Modes
 
  - simple memory addressing modes
    - normal:
@@ -107,9 +108,9 @@ temp1 = temp2;
      - =MEM [ REG[Rb] + S * REG[Ri] + D ]=
 
    - special case
-     - =(Rb, Ri)=  ==>  =0(Rb, Ri, 1)=
-     - =D(Rb, Ri)=  ==>  =D(Rb, Ri, 1)=
-     - =(Rb, Ri, S)=  ==>  =0(Rb, Ri, S)=
+     - =(Rb, Ri)=  is equivalent to  =0(Rb, Ri, 1)=
+     - =D(Rb, Ri)=  is equivalent to  =D(Rb, Ri, 1)=
+     - =(Rb, Ri, S)=  is equivalent to  =0(Rb, Ri, S)=
 
 
 | assembly       | explanation                         | example          |
@@ -165,4 +166,98 @@ temp1 = temp2;
 #+END_SRC
 
 
-*** Address computation
+*** Address computation Instruction
+
+ - =leaq src, dest=
+   - =src= is address mode expression
+   - set =dest= to address denoted by expression
+
+**** Arithmetic Operations
+
+| /                 | <>                      | <>               |
+| format            | computation             | note             |
+|-------------------+-------------------------+------------------|
+| =addq   src,dest= | =dest = dest + src=     |                  |
+|-------------------+-------------------------+------------------|
+| =subq   src,dest= | =dest = dest - src=     |                  |
+|-------------------+-------------------------+------------------|
+| =imulq  src,dest= | =dest = dest * src=     |                  |
+|-------------------+-------------------------+------------------|
+| =salq   src,dest= | =dest = dest << src=    | also called shlq |
+|-------------------+-------------------------+------------------|
+| =sarq   src,dest= | =dest = dest >> src=    | arithmetic       |
+|-------------------+-------------------------+------------------|
+| =shrq   src,dest= | =dest = dest >> src=    | logical          |
+|-------------------+-------------------------+------------------|
+| =xorq   src,dest= | =dest = dest ^ src=     |                  |
+|-------------------+-------------------------+------------------|
+| =andq   src,dest= | =dest = dest & src=     |                  |
+|-------------------+-------------------------+------------------|
+| =orq    src,dest= | =dest = dest \vert src= |                  |
+|-------------------+-------------------------+------------------|
+| =incq   dest=     | =dest = dest + 1=       |                  |
+|-------------------+-------------------------+------------------|
+| =decq   dest=     | =dest = dest - 1=       |                  |
+|-------------------+-------------------------+------------------|
+| =negq   dest=     | =dest = -dest=          |                  |
+|-------------------+-------------------------+------------------|
+| =notq   dest=     | =dest = ~dest=          |                  |
+
+
+**** example1
+
+#+BEGIN_SRC C
+
+  long mul12(long x) {
+    return x * 12;
+  }
+
+#+END_SRC
+
+converted to assembly
+
+#+BEGIN_SRC asm
+
+          ;; %rdi stores value of x
+  leaq    (%rdi,%rdi,2), %rax     ;%rax = x * 3
+  salq    $2, %rax                ;%rax = %rax * 4
+
+#+END_SRC
+
+
+**** example2
+
+#+BEGIN_SRC C
+
+  long arith(long x, long y, long z) {
+    long t1 = x+y;
+    long t2 = z+t1;
+    long t3 = x+4;
+    long t4 = y*48;
+    long t5 = t3+t4;
+    long rval = t2*t5;
+    return rval;
+  }
+
+#+END_SRC
+
+converted to assembly
+
+| register | value          |
+|----------+----------------|
+| =%rdi=   | =x=            |
+| =%rsi=   | =y=            |
+| =%rdx=   | =z, t4=        |
+| =%rax=   | =t1, t2, rval= |
+| =%rcx=   | =t5=           |
+
+#+BEGIN_SRC asm
+
+  leaq    (%rdi,%rsi), %rax       ;t1 = x + y
+  addq    %rdx, %rax              ;t2 = t1 + z
+  leaq    (%rsi,%rsi,2), %rdx     ;t4 = y * 3
+  salq    $4, %rdx                ;t4 = t4 << 4
+  leaq    4(%rdi,%rdx), %rcx      ;t5 = t3 + x + 4
+  imulq   %rcx, %rax              ;rval = t2 * t5
+
+#+END_SRC

@@ -9,7 +9,7 @@ emacs org-mode, and of course help myself review notes easily.
 
 This library is best run interactively.
 
-=Binutil.Py= provides an class =Int= for mimicking C signed integers.
+=binutil.Py= provides an class =Int= for mimicking C signed integers.
 
 #+BEGIN_SRC python
 
@@ -17,10 +17,20 @@ Int(x, bits=32)
 
 #+END_SRC
 
+To use it, open an interactive python session and type
+
+#+BEGIN_SRC python
+
+>>> from binutil import Int
+
+#+END_SRC
+
 Integers default to 32 bits. You can also use
 =int()= to extract integer value
 
 #+BEGIN_SRC python
+
+>>> from binutil import Int
 
 >>> Int(12)
 00000000 00000000 00000000 00001100

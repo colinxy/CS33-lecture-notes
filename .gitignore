@@ -1,4 +1,5 @@
 *.pdf
+*.tex
 *.html
 *.pyc
 .DS_Store

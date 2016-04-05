@@ -11,60 +11,127 @@
  - condition codes
  - memory
 
+compile C code into assembly code: =gcc -Og -S=
 
-=%rsp %esp= : stack pointer
+disassemble object code: =objdump -d=
+
+disassemble in =gdb=: =disassemble <function_name>=
+
+*** x86-64 integer registers
+
+in x86-64, each register is of 8 bytes
+
+#+CAPTION: example of registers
+| 8 bytes | lower 4 bytes | note                                        |
+|---------+---------------+---------------------------------------------|
+| =%rax=  | =%eax=        |                                             |
+| =%rsp=  | =%esp=        | *_stack pointer_*, reserved for special use |
+
 
 *** Moving data
 
- - immediate: constant integer data
- - register: an integer register
-   e.g. %rax
- - memory: 8 consecutive bytes of memory at address given by register
-   e.g. (%rax)
-
-#+BEGIN_SRC asm
-
-movq %rax, (%rbx)
-
-#+END_SRC
+- Operand type
+  - immediate: constant integer data
+    - e.g. =$0x400, $-533=
+  - register: integer register
+    - e.g. =%rax=
+    - =%rsp= reserved for special use
+  - memory: 8 consecutive bytes of memory at address given by register
+    - e.g. =(%rax)=
 
 #+BEGIN_SRC C
 
-int temp;
+int temp, temp1, temp2;
 int *p;
 
 #+END_SRC
 
-#+CAPTION: movq operand operation
-| source    | destination | assembly code      | C code        |
-|-----------+-------------+--------------------+---------------|
-| immediate | register    | =movq $0x4,%rax=   | temp = 0x4    |
-|           | memory      | =movq $0x4,(%rax)= | *p = 0x4      |
-|-----------+-------------+--------------------+---------------|
-| register  | register    | =movq %rax,%rdx=   | temp2 = temp1 |
-|           | memory      | =movq %rax,(%rdx)= | *p = temp     |
-|-----------+-------------+--------------------+---------------|
-| memory    | register    | =movq (&rax) %rdx= | temp = *p     |
+#+CAPTION: movq operand combinations
+|           |             |                <l> |                               <r> |
+| source    | destination |      assembly code | C analog (not exactly translated) |
+|-----------+-------------+--------------------+-----------------------------------|
+| immediate | register    |   =movq $0x4,%rax= |                      =temp = 0x4= |
+|           | memory      | =movq $0x4,(%rax)= |                        =*p = 0x4= |
+|-----------+-------------+--------------------+-----------------------------------|
+| register  | register    |   =movq %rax,%rdx= |                   =temp2 = temp1= |
+|           | memory      | =movq %rax,(%rdx)= |                       =*p = temp= |
+|-----------+-------------+--------------------+-----------------------------------|
+| memory    | register    | =movq (&rax),%rdx= |                       =temp = *p= |
 
+
+**** example: memory-memory transfer
 
 memory-memory transfer connot be done with a single instruction
 
-*** simple memory addressing modes
+#+BEGIN_SRC C
 
- - normal:
-   - Register R specifies memory address
-   - pointer dereference in C
-   - e.g. =movq (%rax), %rdx=
+long temp1, temp2;
+temp1 = temp2;
 
- - displacement:  =D(R)    MEM[ REG[R] + D ]=
-   - D specify offset
-   - e.g. =movq 8(%rax), %rdx=
+#+END_SRC
 
-| assembly | explanation     | example   |                                                    |
-|----------+-----------------+-----------+----------------------------------------------------|
-| =(R)=    | =MEM[REG[R]]=   | =(%rax)=  | value stored at memory address                     |
-|----------+-----------------+-----------+----------------------------------------------------|
-| =D(R)=   | =MEM[REG[R]+D]= | =8(%rax)= | value stored at memory address with displacement D |
+#+BEGIN_SRC asm
+
+          ;; %rax stores the address of temp1
+          ;; %rbx stores the address of temp2
+  movq    (%rbx), %rcx            ;load temp2 into register %rcx
+  movq    %rcx,  (%rax)           ;write temp2 into temp1
+
+#+END_SRC
+
+*** memory addressing modes
+
+ - simple memory addressing modes
+   - normal:
+     - =(R)= : register
+     - =MEM [ REG[R] ]= : access memory located at the address stored by register R
+       - Register R specifies memory address
+       - pointer dereference in C
+       - e.g. =movq (%rax), %rdx=
+
+   - displacement:
+     - =D(R)= : R register, D displacement/offset
+     - =MEM [ REG[R] + D ]= : access memory located at the address
+       stored by register R and offset by D
+
+       - D: constant displacement
+       - e.g. =movq 8(%rax), %rdx=
+
+ - complete memory addressing modes
+   - most general form
+     - =D(Rb, Ri, S)=
+       - D: constant displacement
+       - Rb: base register
+       - Ri: index register
+       - S: scale 1, 2, 4, 8
+     - =MEM [ REG[Rb] + S * REG[Ri] + D ]=
+
+   - special case
+     - =(Rb, Ri)=  ==>  =0(Rb, Ri, 1)=
+     - =D(Rb, Ri)=  ==>  =D(Rb, Ri, 1)=
+     - =(Rb, Ri, S)=  ==>  =0(Rb, Ri, S)=
+
+
+| assembly       | explanation                         | example          |
+| /              | <>                                  | <>               |
+|----------------+-------------------------------------+------------------|
+| =(R)=          | =MEM [ REG[R] ]=                    | =(%rax)=         |
+|----------------+-------------------------------------+------------------|
+| =D(R)=         | =MEM [ REG[R]+D ]=                  | =8(%rax)=        |
+|----------------+-------------------------------------+------------------|
+| =D(Rb, Ri, S)= | =MEM [ REG[Rb] + S * REG[Ri] + D ]= | =8(%rdx,%rcx,4)= |
+
+
+#+CAPTION: address computation example
+| %rdx | 0xf000 |
+| %rcx | 0x0100 |
+
+| memory addressing | complete memory addressing | computation           | address   |
+|-------------------+----------------------------+-----------------------+-----------|
+| =0x8(%rdx)=       | =0x8(0xf000,0,0)=          | =0xf000 + 0x8=        | =0xf008=  |
+| =(%rdx,%rcx)=     | =0x0(0xf000,0x0100,1)=     | =0xf000 + 0x0100=     | =0xf100=  |
+| =(%rdx,%rcx,4)=   | =0x0(0xf000,0x0100,4)=     | =0xf000 + 4 * 0x0100= | =0xf400=  |
+| =0x80(,%rdx,2)=   | =0x0(0,0xf000,2)=          | =2 * 0xf000 + 0x80=   | =0x1e080= |
 
 
 **** example: C code translated into assembly
@@ -80,24 +147,22 @@ memory-memory transfer connot be done with a single instruction
 
 #+END_SRC
 
+| register | value | type    |
+|----------+-------+---------|
+| =%rdi=   | xp    | address |
+| =%rsi=   | yp    | address |
+| =%rax=   | x     | long    |
+| =%rdx=   | y     | long    |
+
 #+BEGIN_SRC asm
 
   swap:
-        movq   (%rdi), %rax
+        movq      (%rdi), %rax       ;x = *xp
+        movq      (%rsi), %rdx       ;y = *yp
+        movq      %rdx,  (%rdi)      ;*xp = y
+        movq      %rax,  (%rsi)      ;*yp = x
 
 #+END_SRC
 
-| register | value | type |
-|----------+-------+------|
-|          |       |      |
-
-**** example
-
-| %rdx |
-|      |
-
-#+CAPTION: address computation
-| expression | address |
-|            |         |
 
 *** Address computation

@@ -69,24 +69,24 @@
 | =setb=  | =CF=                 | below (unsigned)          |
 
 #+CAPTION: x84-64 integer registers
-| 8 bytes | last 1 byte | note            |
-|---------+-------------+-----------------|
-| =%rax=  | =%al=       |                 |
-| =%rbx=  | =%bl=       |                 |
-| =%rcx=  | =%cl=       |                 |
-| =%rdx=  | =%dl=       |                 |
-| =%rsi=  | =%sil=      |                 |
-| =%rdi=  | =%dil=      |                 |
-| =%rsp=  | =%spl=      | _stack pointer_ |
-| =%rbp=  | =%bpl=      |                 |
-| =%r8=   | =%r8b=      |                 |
-| =%r9=   | =%r9b=      |                 |
-| =%r10=  | =%r10b=     |                 |
-| =%r11=  | =%r11b=     |                 |
-| =%r12=  | =%r12b=     |                 |
-| =%r13=  | =%r13b=     |                 |
-| =%r14=  | =%r14b=     |                 |
-| =%r15=  | =%r15b=     |                 |
+| 8 bytes registers | last 1 byte | note            |
+|-------------------+-------------+-----------------|
+| =%rax=            | =%al=       |                 |
+| =%rbx=            | =%bl=       |                 |
+| =%rcx=            | =%cl=       |                 |
+| =%rdx=            | =%dl=       |                 |
+| =%rsi=            | =%sil=      |                 |
+| =%rdi=            | =%dil=      |                 |
+| =%rsp=            | =%spl=      | _stack pointer_ |
+| =%rbp=            | =%bpl=      |                 |
+| =%r8=             | =%r8b=      |                 |
+| =%r9=             | =%r9b=      |                 |
+| =%r10=            | =%r10b=     |                 |
+| =%r11=            | =%r11b=     |                 |
+| =%r12=            | =%r12b=     |                 |
+| =%r13=            | =%r13b=     |                 |
+| =%r14=            | =%r14b=     |                 |
+| =%r15=            | =%r15b=     |                 |
 
 
 *** example
@@ -264,6 +264,27 @@ _Both values get computed_
 
 ** Do-While Loop
 
+do-while
+
+#+BEGIN_SRC C
+
+  do {
+    body;
+  } while (test);
+
+#+END_SRC
+
+goto
+
+#+BEGIN_SRC C
+
+  loop:
+    body;
+    if (test)
+      goto loop;
+
+#+END_SRC
+
 *** example
 
  - count number of 1's in argument x
@@ -308,14 +329,155 @@ goto version
 
         movl      $0, %rax        ;result = 0
   .L2:
-        movq      %rdi, %rdx
-        andl      $1,   %edx
-        addq      %rdx, %rax
-        shrq      %rdi
-        jne       .L2
+        movq      %rdi, %rdx      ;%rdx = %rax
+        andl      $1,   %edx      ;t = x & 0x1
+        addq      %rdx, %rax      ;result += t
+        shrq      %rdi            ;x >>= 1
+        jne       .L2             ;if (x) goto loop
         ret
 
 #+END_SRC
 
 
+** While Loop
+
+while loop
+
+#+BEGIN_SRC C
+
+  while (test)
+      body;
+
+#+END_SRC
+
+goto
+
+#+BEGIN_SRC C
+
+  goto test;
+  loop:
+    body;
+  test:
+    if (test)
+      goto loop;
+  done:
+
+#+END_SRC
+
+
+** For Loop
+
+#+BEGIN_SRC C
+
+  for (init; test; update)
+    body;
+
+#+END_SRC
+
+equivalent to
+
+#+BEGIN_SRC C
+
+  init;
+  while (test) {
+    body;
+    update;
+  }
+
+#+END_SRC
+
+
 * Switch
+
+ - multiple case label
+ - fall through cases
+ - missing cases
+
+#+BEGIN_SRC C
+
+  long switch_eg(long x, long y, long z) {
+    long w = 1;
+    switch (x) {
+    case 1:
+      w = y*z;
+      break;
+    case 2:
+      w = y/z;
+      /* fall through */
+    case 3:
+      w += z;
+      break;
+    case 5:
+    case 6:
+      w -= z;
+      break;
+    default:
+      w = 2;
+    }
+    return w;
+  }
+
+#+END_SRC
+
+| register | variable     |
+|----------+--------------|
+| =%rdi=   | =x=          |
+| =%rsi=   | =y=          |
+| =%rdx=   | =z=          |
+| =%rax=   | return value |
+
+jump table
+
+#+BEGIN_SRC asm
+
+          ;; jump table
+  .setction       .rodata
+      .align 8
+  .L4:
+        .quad     .L8             ;x = 0
+        .quad     .L3             ;x = 1
+        .quad     .L5             ;x = 2
+        .quad     .L9             ;x = 3
+        .quad     .L8             ;x = 4
+        .quad     .L7             ;x = 5
+        .quad     .L7             ;x = 6
+
+  switch_eg:
+        movq      %rdx, %rcx
+        cmpq      $6,   %rdi
+        ja        .L8
+        jmp       *.L4(,%rdi,8)
+
+          ;; code block (x == 1)
+  .L3:
+        movq      %rsi, %rax
+        imulq     %rdx, %rax
+        ret
+  .L5:
+        movq      %rsi, %rax
+        cqto
+        idivq     %rcx
+        jmp       .L6
+  .L9:
+        movl      $1, %eax
+  .L6:
+        addq      %rcx, %rax
+        ret
+  .L7:
+        movq      $1, %eax
+        subq      %rdx, %rax
+        ret
+  .L8:
+        movl      $2, %eax
+        ret
+
+#+END_SRC
+
+ - Explanation
+   - table structure
+     - each target requires 8 bytes
+     - base address at .L4
+
+ - jumping
+   - direct: =jmp .L8=
+   - indirect: =jmp *.L4(,%rdi,8)=

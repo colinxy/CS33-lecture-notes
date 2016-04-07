@@ -178,6 +178,12 @@ temp1 = temp2;
 
 **** Arithmetic Operations
 
+instructions that ends with
+ - =b= : operate on 1 byte
+ - =w= : operate on 2 bytes
+ - =l= : operate on 4 bytes
+ - =q= : operate on 8 bytes
+
 | /                 | <>                      | <>               |
 | format            | computation             | note             |
 |-------------------+-------------------------+------------------|

@@ -10,7 +10,7 @@ emacs org-mode, and of course help myself review notes easily.
 * Update for binutil.py
 
 The default behavior for integer division in python is to round
-towards negative infinity, which in C is to round towards 0.
+towards negative infinity, while in C is to round towards 0.
 
 The code has now been corrected to C int behavior *EXACTLY*.
 
@@ -73,7 +73,7 @@ exactly as C cast, where the leading bits are truncated
 
 #+END_SRC
 
-Most basic arithmetic and bitwise operators behave exist as C int,
+Most basic arithmetic and bitwise operators behave exactly as C int,
 including
 =+, -, *, /, &, |, ^, ~, <<, >>=
 

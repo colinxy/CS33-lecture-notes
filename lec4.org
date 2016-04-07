@@ -1,0 +1,77 @@
+#+DATE: <2016-04-06 Wed>
+
+* Condition Codes
+
+ - Single bit registers
+   - CF: carry flag
+   - SF: sign flag
+   - ZF: zero flag
+   - OF: overflow flag
+
+*** example
+
+#+BEGIN_SRC C
+
+  int gt(long x, long y) {
+    return x > y;
+  }
+
+#+END_SRC
+
+converted to assmebly
+
+#+BEGIN_SRC asm
+
+  cmpq    %rsi, %rdi              ;
+  setg    %al
+
+#+END_SRC
+
+** Jumping
+
+*** Conditional Branch example
+
+#+BEGIN_SRC C
+
+  long absdiff(long x, long y) {
+    long result;
+    if (x < y)
+      result = x - y;
+    else
+      result = y - x;
+    return result;
+  }
+
+#+END_SRC
+
+| register | variable |
+|          |          |
+
+#+BEGIN_SRC asm
+
+  absdiff:
+        cmpq      %rsi, %rdi
+        jle       .L4
+        movq      %rdi, %rax
+        subq      %rsi, %rax
+        ret
+  .L4
+        movq      %rsi, %rax
+        subq      %rdi, %rax
+        ret
+
+#+END_SRC
+
+Express with goto code
+
+#+BEGIN_SRC C
+
+
+
+#+END_SRC
+
+*** Conditional Move
+
+*** Loop
+
+*** Switch

@@ -6,6 +6,10 @@
 
 ** Assembly / Machine Code
 
+#+CAPTION: architecture
+#+ATTR_HTML: :width 500px
+[[./res/architecture.png]]
+
  - PC (program counter): address of next instruction
  - register files
  - condition codes

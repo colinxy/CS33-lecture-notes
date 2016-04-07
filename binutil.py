@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
-"""Python C signed integer/float library
+"""
+Python C signed integer/float library
 mimic behavior of C int/float
 """
 
@@ -74,6 +75,9 @@ class Int(int):
         return super(Int, cls).__new__(cls, x)
 
     def __init__(self, x, bits=32):
+        if bits <= 0:
+            raise ArithmeticError("invalid number of bits for Int: {}".
+                                  format(bits))
         self.bits = bits
 
     # def __int__(self):
@@ -93,12 +97,20 @@ class Int(int):
         bits = max(self.bits, value.bits)
         return self.__class__(int.__add__(self, value), bits)
 
+    def __radd__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__add__(value, self)
+
     # -
     def __sub__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
         bits = max(self.bits, value.bits)
         return self.__class__(int.__sub__(self, value), bits)
+
+    def __rsub__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__sub__(value, self)
 
     # *
     def __mul__(self, value):
@@ -107,14 +119,32 @@ class Int(int):
         bits = max(self.bits, value.bits)
         return self.__class__(int.__mul__(self, value), bits)
 
+    def __rmul__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__mul__(value, self)
+
     # /
     def __floordiv__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
         bits = max(self.bits, value.bits)
-        return self.__class__(int.__floordiv__(self, value), bits)
+        # default behavior for python is round towards -Infinity
+        # while in C is round towards 0
+        # round towards 0
+        if (self < 0) ^ (value < 0):
+            # self + (-self % value)
+            adjusted = int.__add__(self, int.__neg__(self) % value)
+            return self.__class__(int.__floordiv__(adjusted, value), bits)
+        else:
+            return self.__class__(int.__floordiv__(self, value), bits)
 
     __truediv__ = __floordiv__
+
+    def __rfloordiv__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__floordiv__(value, self)
+
+    __rtruediv__ = __rfloordiv__
 
     # bit level
     # &
@@ -124,12 +154,20 @@ class Int(int):
         bits = max(self.bits, value.bits)
         return self.__class__(int.__and__(self, value), bits)
 
+    def __rand__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__and__(value, self)
+
     # |
     def __or__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
         bits = max(self.bits, value.bits)
         return self.__class__(int.__or__(self, value), bits)
+
+    def __ror__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__or__(value, self)
 
     # ~
     def __invert__(self):
@@ -142,6 +180,10 @@ class Int(int):
         bits = max(self.bits, value.bits)
         return self.__class__(int.__xor__(self, value), bits)
 
+    def __rxor__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__xor__(value, self)
+
     # <<
     def __lshift__(self, value):
         if not isinstance(value, self.__class__):
@@ -149,12 +191,28 @@ class Int(int):
         bits = max(self.bits, value.bits)
         return self.__class__(int.__lshift__(self, value), bits)
 
+    def __rlshift__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__lshift__(value, self)
+
     # >>
     def __rshift__(self, value):
         if not isinstance(value, self.__class__):
             value = self.__class__(value, self.bits)
         bits = max(self.bits, value.bits)
         return self.__class__(int.__rshift__(self, value), bits)
+
+    def __rrshift__(self, value):
+        value = self.__class__(value, self.bits)
+        return self.__class__.__rshift__(value, self)
+
+    @classmethod
+    def TMAX(cls, bits=32):
+        return cls((1 << (bits - 1)) - 1, bits)
+
+    @classmethod
+    def TMIN(cls, bits=32):
+        return cls(-(1 << (bits - 1)), bits)
 
 
 class Float(float):

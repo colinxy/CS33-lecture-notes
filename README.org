@@ -1,9 +1,18 @@
 #+TITLE: CS33 Lecture Notes
 
+
 * Goal
 
 The goal of this repo is to get familiar with taking notes in
 emacs org-mode, and of course help myself review notes easily.
+
+
+* Update for binutil.py
+
+The default behavior for integer division in python is to round
+towards negative infinity, which in C is to round towards 0.
+
+The code has now been corrected to C int behavior *EXACTLY*.
 
 * Usage for binutil.py
 
@@ -64,7 +73,8 @@ exactly as C cast, where the leading bits are truncated
 
 #+END_SRC
 
-All basic arithmetic and bitwise operators work, including
+Most basic arithmetic and bitwise operators behave exist as C int,
+including
 =+, -, *, /, &, |, ^, ~, <<, >>=
 
 #+BEGIN_SRC python
@@ -86,7 +96,7 @@ All basic arithmetic and bitwise operators work, including
 11111111 11111111 11100111 00000100
 
 >>> x / y
-11111111 11111111 11111111 11111101
+11111111 11111111 11111111 11111110
 
 >>> x & y
 00000000 00000000 00000000 01001000

@@ -1,0 +1,199 @@
+#+DATE: <2016-04-11 Mon>
+
+* x86-64 Stack
+
+#+BEGIN_EXAMPLE
+
+        || stack bottom ||
+        ||      .       ||       .
+        ||      |       ||      / \
+        ||      |       ||       |
+        ||     \ /      ||       |
+        ||      .       ||       .
+        ||    stack     ||    address
+  stack ||    grows     ||   increases
+        ||    down      ||       .
+        ||      .       ||       .
+        ||      |       ||      / \
+        ||      |       ||       |
+        ||     \ /      ||       |
+        ||      .       ||       .
+        ||  stack top   ||  <== stack pointer %rsp
+
+#+END_EXAMPLE
+
+ - =pushq src=
+   - fetch operand (register) at src
+   - decrement =%rsp= by 8
+   - write operand at address given by =%rsp=
+   - grow stack
+
+ - =popq dest=
+   - read value (stack) at address given by =%rsp=
+   - increment =%rsp= by 8
+   - store value at dest
+   - shrink stack
+
+
+* Calling Convention
+
+** Passing Control
+
+*** example
+
+#+BEGIN_SRC C
+
+  void multistore(long x, long y, long *dest) {
+    long t = mult2(x, y);
+    *dest = t;
+  }
+
+  long mult2(long a, long b) {
+    long s = a * b;
+    return s;
+  }
+
+#+END_SRC
+
+| register | variable |
+|----------+----------|
+| =%rbx=   | =t=      |
+| =%rdi=   | =x=      |
+| =%rsi=   | =y=      |
+| =%rdx=   | =dest=   |
+
+#+BEGIN_SRC asm
+
+  multistore:
+        push      %rbx            ;save %rbx
+        mov       %rdx, %rbx      ;%rdx is the 3rd argument dest; save dest
+        callq     <mult2>         ;mult2(x, y)
+        mov       %rax, (%rbx)    ;write return value of mult2 to %rbx
+        pop       %rbx            ;restore %rbx
+        retq
+
+  mult2:
+        mov       %rdi, %rax      ;a
+        imul      %rsi, %rax      ;a *= b
+        retq
+
+#+END_SRC
+
+
+*** Procedure Control Flow
+
+ - procedure call: =call label=
+   - push return address on stack
+   - jump to =label=
+
+ - return address
+   - address of the next instruction right after call
+
+ - procedure return: =ret=
+   - pop address from stack
+   - jump to return address
+
+*** example
+
+#+BEGIN_SRC asm
+
+  multistore:
+        ...
+        callq     <mult2>         ;push return address on stack, jump to <mult2>
+        mov       %rax, (%rbx)
+        ...
+
+  mult2:
+        mov       %rdi, %rax
+        ...
+        retq                      ;jump to return address
+
+#+END_SRC
+
+
+** Passing Data
+
+| register | first 6 arguments | return value |
+|----------+-------------------+--------------|
+|          | =%rdi=            | =%rax=       |
+|          | =%rsi=            |              |
+|          | =%rdx=            |              |
+|          | =%rcx=            |              |
+|          | =%r8=             |              |
+|          | =%r9=             |              |
+
+additional arguments are allocated on the stack
+
+
+** Managing Local Data
+
+ - languages that support recursion
+   e.g. C, Pascal, Java
+   - code must be "Reentrant"
+     - multiple simultaneous instantiation of single procedure
+   - need to store state of each instantiation
+     - arguments
+     - local variables
+     - return pointer
+
+ - stack discipline
+   - state for given procedure needed for limited time
+     - from when called to when return
+   - callee returns before caller does
+
+ - stack allocated in *Frames*
+   - state for single procedure instantiation
+
+
+*** Stack Frame
+
+ - contents
+   - return information
+   - local storage
+   - temporary space
+
+ - management
+   - space allocated when enter procedure
+     - "set-up" code
+     - includes push by =call= instruction
+   - deallocated when return
+     - "finish" code
+     - includes pop by =ret= instruction
+
+*** x86-64/Linux Stack Frame
+
+ - current stack frame (callee)
+   - in sequence of "top" to "bottom"
+   - parameters for function about to call
+   - local variables (if can't keep in registers)
+   - saved register contents
+   - old frame pointer (optional)
+
+ - caller stack frame
+   - return address
+     - pushed by =call= instruction
+   - arguments for this call
+
+#+BEGIN_EXAMPLE
+
+         || stack bottom ||
+         ||              ||
+         ||              ||
+ caller  || arguments 7+ ||
+ frame   ||--------------||
+         || return addr  ||
+         ||--------------||
+         ||  old %rbp    ||  <== frame pointer (%rbp) (optional)
+ --------||--------------||
+         ||              ||
+         ||    saved     ||
+         ||  registers   ||
+         ||      +       ||
+ callee  ||    local     ||
+ frame   ||  variables   ||
+         ||--------------||
+         ||  argument    ||      (optional)
+         ||    build     ||
+         ||              ||  <== stack pointer %rsp
+
+#+END_EXAMPLE

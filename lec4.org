@@ -478,6 +478,6 @@ jump table
      - each target requires 8 bytes
      - base address at .L4
 
- - jumping
-   - direct: =jmp .L8=
-   - indirect: =jmp *.L4(,%rdi,8)=
+   - jumping
+     - direct: =jmp .L8=
+     - indirect: =jmp *.L4(,%rdi,8)=

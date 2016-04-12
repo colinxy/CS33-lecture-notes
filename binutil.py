@@ -70,14 +70,15 @@ class Int(int):
     def __new__(cls, x, bits=32):
         """Int(x: int, bits: int = 32) -> Int
         """
+        if bits <= 0:
+            raise ArithmeticError("invalid number of bits for Int: {}".
+                                  format(bits))
+
         # make sure is negative when 2**(bits-1) < x < 2**bits
         x = signed(bin2(x, bits))
         return super(Int, cls).__new__(cls, x)
 
     def __init__(self, x, bits=32):
-        if bits <= 0:
-            raise ArithmeticError("invalid number of bits for Int: {}".
-                                  format(bits))
         self.bits = bits
 
     # def __int__(self):

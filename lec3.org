@@ -45,8 +45,8 @@ in x86-64, each register is of 8 bytes
 
 #+BEGIN_SRC C
 
-int temp, temp1, temp2;
-int *p;
+  int temp, temp1, temp2;
+  int *p;
 
 #+END_SRC
 
@@ -69,8 +69,8 @@ memory-memory transfer connot be done with a single instruction
 
 #+BEGIN_SRC C
 
-long temp1, temp2;
-temp1 = temp2;
+  long temp1, temp2;
+  temp1 = temp2;
 
 #+END_SRC
 
@@ -128,8 +128,8 @@ temp1 = temp2;
 
 
 #+CAPTION: address computation example
-| %rdx | 0xf000 |
-| %rcx | 0x0100 |
+| =%rdx= | =0xf000= |
+| =%rcx= | =0x0100= |
 
 | memory addressing | complete memory addressing | computation           | address   |
 |-------------------+----------------------------+-----------------------+-----------|
@@ -180,9 +180,9 @@ temp1 = temp2;
 
 instructions that ends with
  - =b= : operate on 1 byte
- - =w= : operate on 2 bytes
- - =l= : operate on 4 bytes
- - =q= : operate on 8 bytes
+ - =w= : operate on last 2 bytes
+ - =l= : operate on last 4 bytes
+ - =q= : operate on last 8 bytes
 
 | /                 | <>                      | <>               |
 | format            | computation             | note             |

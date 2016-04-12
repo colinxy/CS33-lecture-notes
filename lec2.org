@@ -49,7 +49,7 @@ unsigned multiplication implements modular arithmetic
 
  - use logical shift: pad with 0
 
-u >> k == floor(u / 2^{k})
+=u >> k= == floor(u / 2^{k})
 
 | operation | decimal |     hex |                 bin |
 |           |         |     <r> |                 <r> |
@@ -77,9 +77,10 @@ Endianness
  - Big Endian: least significant bit has highest address
  - Little Endian: least significant bit has lowest address
 
-| address       | 0x100 | 0x101 | 0x102 | 0x103 |
-| big endian    |    01 |    23 |    45 |    67 |
-| little endian |    67 |    45 |    23 |    01 |
+| address       | =0x100= | =0x101= | =0x102= | =0x103= |
+|---------------+---------+---------+---------+---------|
+| big endian    |      01 |      23 |      45 |      67 |
+| little endian |      67 |      45 |      23 |      01 |
 
 #+BEGIN_SRC C
 

@@ -197,3 +197,225 @@ additional arguments are allocated on the stack
          ||              ||  <== stack pointer %rsp
 
 #+END_EXAMPLE
+
+*** example
+
+#+BEGIN_SRC C
+
+  long incr(long *p, long val) {
+    long x = *p;
+    long y = x + val;
+    *p = y;
+    return x;
+  }
+
+#+END_SRC
+
+| register | variable           |
+|----------+--------------------|
+| =%rdi=   | =p=                |
+| =%rsi=   | ~val~ , =y=        |
+| =%rax=   | ~x~ , return value |
+
+#+BEGIN_SRC asm
+
+  incr:
+        movq      (%rdi), %rax    ;x = *p
+        addq      %rax, %rsi      ;val += x  (y = x + val)
+        movq      %rsi, (%rdi)    ;*p = y
+        ret
+
+#+END_SRC
+
+**** calling =incr=
+
+#+BEGIN_SRC C
+
+  long call_incr() {
+    long v1 = 15213;
+    long v2 = incr(&vi, 3000);
+    return v1 + v2;
+  }
+
+#+END_SRC
+
+| register | variable                                  |
+|----------+-------------------------------------------|
+| =%rdi=   | first argument passed to =incr= , =&v1=   |
+| =%rsi=   | second argument passed to =incr= , =3000= |
+|          |                                           |
+
+#+BEGIN_SRC asm
+
+  call_incr:
+        subq      $16, %rsp       ;reserve space for temporary variable (15213) and return value
+        movq      $15213, 8(%rsp) ;write 15213 to address 8+%rsp (&v1)
+        movl      $3000, %rsi     ;write 3000 as the second argument passed to incr
+        leaq      8(%rsp), %rdi   ;write address of 8+%rsp (&v1) as the first argument passed to incr
+        call      incr
+        addq      8(%rsp), %rax   ;%rax += v1
+        addq      $16, %rsp       ;deallocate space previously reserved
+        ret
+
+#+END_SRC
+
+*** Register Saving Conventions
+
+ - caller
+ - callee
+
+#+BEGIN_SRC asm
+
+  caller:
+        ...
+        movq      $15213, %rdx
+        call      callee
+        addq      %rdx, %rax      ;contents of register overwritten by callee
+        ...                       ;THIS COULD BE TROUBLE
+        ret
+
+  callee:
+        ...
+        subq      $18213, %rdx    ;contents of register overwritten by callee
+        ...
+        ret
+
+#+END_SRC
+
+ - conventions
+   - caller saved
+     - caller saves temporary values in its frame before the call
+   - callee saved
+     - callee saves temporary values in its frame before using
+     - callee restores them before returning to caller
+
+**** x86-64 Linux Register Usage
+
+ - caller saved
+   - =%rax=
+     - return value
+     - can be modified by procedure (callee)
+   - =%rdi=, =%rsi=, =%rdx=, =%rcx=, =%r8=, =%r9=
+     - arguments (first 6)
+     - can be modified by procedure (callee)
+   - =%r10=, =%r11=
+     - can be modified by procedure (callee)
+
+ - callee saved
+   - =%rbx=, =%r12=, =%r13=, =%r14=
+     - callee must save and restore
+   - =%rbp=
+     - callee must save & restore
+     - maybe used as frame pointer
+     - can mix & match
+   - =%rsp=
+     - special form of callee save
+     - restored to original value upon exit from procedure (callee)
+
+| /        | <>              | <>                  |
+| register | usage           | caller/callee saved |
+|----------+-----------------+---------------------|
+| =%rax=   | return value    | caller saved        |
+|----------+-----------------+---------------------|
+| =%rdi=   |                 |                     |
+| =%rsi=   |                 |                     |
+| =%rdx=   | arguments       | caller saved        |
+| =%rcx=   |                 |                     |
+| =%r8=    |                 |                     |
+| =%r9=    |                 |                     |
+|----------+-----------------+---------------------|
+| =%r10=   | temporaries     | caller saved        |
+| =%r11=   |                 |                     |
+|----------+-----------------+---------------------|
+| =%rbx=   |                 |                     |
+| =%r12=   | temporaries     | callee saved        |
+| =%r13=   |                 |                     |
+| =%r14=   |                 |                     |
+|----------+-----------------+---------------------|
+| =%rbp=   | (frame pointer) | callee saved        |
+|----------+-----------------+---------------------|
+| =%rsp=   | stack pointer   | callee saved        |
+
+
+***** callee saved example
+
+#+BEGIN_SRC C
+
+  long call_incr2(long x) {
+    long v1 = 15213;
+    long v2 = incr(&v1, 3000);
+    return x + v2;
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  call_incr2:
+        pushq     %rbx            ;save %rbx
+        subq      $16, %rsp
+        movq      %rdi, %rbx      ;%rbx = x
+        movq      $15213, 8(%rsp)
+        movl      $3000, %esi     ;second argument passed to incr
+        leaq      8(%rsp), %rdi   ;first argument passed to incr
+        call      incr
+        addq      %rbx, %rax
+        addq      $16, %rsp
+        popq      %rbx            ;restore %rbx
+        ret
+
+#+END_SRC
+
+
+** Recursive Function Call
+
+*** example
+
+#+BEGIN_SRC C
+
+  long pcount_r(unsigned long x) {
+    if (x == 0)
+      return 0;
+    else
+      return (x & 1) + pcount_r(x << 1);
+  }
+
+#+END_SRC
+
+| register | lower-order 4 bytes | variable            |
+|----------+---------------------+---------------------|
+| =%rdi=   |                     | ~x~, first argument |
+| =%rbx=   | =%ebx=              | temporary =x=       |
+| =%rax=   | =%eax=              | return value        |
+
+#+BEGIN_SRC asm
+
+  pcount_r:
+        movl      $0, %eax
+        testq     %rdi, %rdi      ;%rdi & %rdi (without setting destination)
+        je        .L6             ;jump if zero flag is set (%rdi & %rdi == 0)
+        pushq     %rbx            ;save %rbx
+        movq      %rdi, %rbx      ;%rbx = x
+        andl      $1, %ebx        ;%rbx &= 1
+        shrq      %rdi            ;x >> 1, also as first argument
+        call      pcount_r
+        addq      %rbx, %rax
+        popq      %rbx            ;restore %rbx
+  .L6:
+        ret
+
+#+END_SRC
+
+*** Observation
+
+ - handled without special consideration
+   - stack frame mean that each functiion has private storage
+     - saved registers & local variables
+     - saved return pointer
+   - register saving conventions prevent one function from
+     corrupting another's data
+   - stack discipline follows call/return pattern
+     - if P calls Q, then Q returns before P
+     - last-in, first-out
+
+ - also works for mutual recursion

@@ -29,7 +29,7 @@
 
 *** By Compare Instruction
 
-=cmpq b, a= : like computing =a - b= without destination
+=cmpq b, a= : computing =a - b= without destination
 
  - CF set if carry out from most significant bit (unsigned comparison)
  - ZF set if ~a == b~
@@ -39,7 +39,7 @@
 
 *** By Test Instruction
 
-=testq b, a= : like computing =a & b= without setting destination
+=testq b, a= : computing =a & b= without setting destination
 
  - ZF set if ~a & b == 0~
  - SF set if ~a & b < 0~
@@ -69,24 +69,24 @@
 | =setb=  | =CF=                 | below (unsigned)          |
 
 #+CAPTION: x84-64 integer registers
-| 8 bytes registers | last 1 byte | note            |
-|-------------------+-------------+-----------------|
-| =%rax=            | =%al=       |                 |
-| =%rbx=            | =%bl=       |                 |
-| =%rcx=            | =%cl=       |                 |
-| =%rdx=            | =%dl=       |                 |
-| =%rsi=            | =%sil=      |                 |
-| =%rdi=            | =%dil=      |                 |
-| =%rsp=            | =%spl=      | _stack pointer_ |
-| =%rbp=            | =%bpl=      |                 |
-| =%r8=             | =%r8b=      |                 |
-| =%r9=             | =%r9b=      |                 |
-| =%r10=            | =%r10b=     |                 |
-| =%r11=            | =%r11b=     |                 |
-| =%r12=            | =%r12b=     |                 |
-| =%r13=            | =%r13b=     |                 |
-| =%r14=            | =%r14b=     |                 |
-| =%r15=            | =%r15b=     |                 |
+| 8 bytes registers | lower-order 4 bytes | lower-order 1 byte | note            |
+|-------------------+---------------------+--------------------+-----------------|
+| =%rax=            | =%eax=              | =%al=              |                 |
+| =%rbx=            | =%ebx=              | =%bl=              |                 |
+| =%rcx=            | =%ecx=              | =%cl=              |                 |
+| =%rdx=            | =%edx=              | =%dl=              |                 |
+| =%rsi=            | =%esi=              | =%sil=             |                 |
+| =%rdi=            | =%edi=              | =%dil=             |                 |
+| =%rsp=            | =%esp=              | =%spl=             | _stack pointer_ |
+| =%rbp=            | =%ebp=              | =%bpl=             |                 |
+| =%r8=             | =%r8d=              | =%r8b=             |                 |
+| =%r9=             | =%r9d=              | =%r9b=             |                 |
+| =%r10=            | =%r10d=             | =%r10b=            |                 |
+| =%r11=            | =%r11d=             | =%r11b=            |                 |
+| =%r12=            | =%r12d=             | =%r12b=            |                 |
+| =%r13=            | =%r13d=             | =%r13b=            |                 |
+| =%r14=            | =%r14d=             | =%r14b=            |                 |
+| =%r15=            | =%r15d=             | =%r15b=            |                 |
 
 
 *** example
@@ -101,16 +101,16 @@
 
 converted to assmebly
 
-| 8 byte register | last 1 byte | variable     |
-|-----------------+-------------+--------------|
-| =%rdi=          |             | =x=          |
-| =%rsi=          |             | =y=          |
-| =%rax=          | =%al=       | return value |
+| 8 byte register | lower-order 1 byte | variable     |
+|-----------------+--------------------+--------------|
+| =%rdi=          |                    | =x=          |
+| =%rsi=          |                    | =y=          |
+| =%rax=          | =%al=              | return value |
 
 #+BEGIN_SRC asm
 
   cmpq    %rsi, %rdi              ;compare x, y
-  setg    %al                     ;set last byte of %rax to comparison result
+  setg    %al                     ;set lower-order byte of %rax to comparison result
   movzbl  %al, %rax               ;set result of %rax to 0
 
 #+END_SRC
@@ -445,28 +445,33 @@ jump table
   switch_eg:
         movq      %rdx, %rcx
         cmpq      $6,   %rdi
-        ja        .L8
+        ja        .L8             ;default
         jmp       *.L4(,%rdi,8)
 
-          ;; code block (x == 1)
+          ;; (x == 1)
   .L3:
         movq      %rsi, %rax
         imulq     %rdx, %rax
         ret
+          ;; x == 2
   .L5:
         movq      %rsi, %rax
         cqto
         idivq     %rcx
         jmp       .L6
+          ;; x == 3
   .L9:
         movl      $1, %eax
+          ;; fall through
   .L6:
         addq      %rcx, %rax
         ret
+          ;; x == 5, x == 6
   .L7:
         movq      $1, %eax
         subq      %rdx, %rax
         ret
+          ;; default
   .L8:
         movl      $2, %eax
         ret

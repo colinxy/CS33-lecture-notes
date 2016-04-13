@@ -1,0 +1,224 @@
+#+DATE: <2016-04-13 Wed>
+
+* Arrays
+
+** 1-Dimensional
+
+*** Array Allocation
+
+=T A[L]=
+ - array of data type T and length L
+ - identifier A as a pointer to array element 0
+ - continguously allocated region of =L * sizeof(T)= bytes in memory
+
+=int val[5];=
+
+| reference  | type   |
+|------------+--------|
+| =val[4]=   | =int=  |
+| =val=      | =int*= |
+| =&val[2]=  | =int*= |
+| =*(val+1)= | =int=  |
+
+#+ATTR_HTML: :width 500px
+[[./res/array_allocation.png]]
+
+
+*** example
+
+#+BEGIN_SRC C
+
+  #define ZLEN 5
+  typedef int zip_dig[ZLEN];
+
+  zip_dig ucla = {1, 2, 3, 4, 5};
+
+  int get_digit(zip_dig z, int digit) {
+    return z[digit];
+  }
+
+#+END_SRC
+
+| register | variable                      |
+|----------+-------------------------------|
+| =%rdi=   | ~z~ : first argument          |
+| =%rsi=   | ~digit~ : second argument     |
+| =%eax=   | lower-order 4 bytes of =%rax= |
+
+#+BEGIN_SRC asm
+
+  movl    (%rdi, %rsi, 4), %eax   ;z[digit]
+
+#+END_SRC
+
+*** array loop example
+
+#+BEGIN_SRC C
+
+  void zincr(zip_dig z) {
+    size_t i;
+    for (int i = 0; i < ZLEN; i++)
+      z[i]++;
+  }
+
+#+END_SRC
+
+| register | variable |
+|----------+----------|
+| =%rdi=   | =z=      |
+| =%eax=   | =i=      |
+
+#+BEGIN_SRC asm
+
+  zincr:
+        movl      $0, %eax        ;i = 0
+        jmp       .L3
+  .L4:
+        addl      $1, (%rdi, %rax, 4) ;z[i]++
+        addq      $1, %rax            ;i++
+  .L3:
+        cmpq      $4, %rax        ;compare i, ZLEN-1
+        jbe       .L4             ;if <=, goto .L4
+
+#+END_SRC
+
+
+** Multi-Dimensional (nested)
+
+=T A[R][C]=
+ - 2D array of data type T
+ - R rows, C columns
+ - array size: =R * C * sizeof(T)=
+ - row-major ordering
+
+*** access
+
+=T A[R][C]=
+ - =A[i]= is an array of C element
+   - starting address =A + i*(C*K)=
+ - =A[i][j]= is an element of type T
+   - address =A + i*(C*K) + j*K=
+
+#+CAPTION: multidimensional array memory layout
+#+ATTR_HTML: :width 500px
+[[./res/multi_dim_array.png]]
+
+_Row-Major ordering_
+
+#+BEGIN_SRC C
+
+  zip_dig pgh[4];                 /* equivalent to int pgh[4][5] */
+
+  int *get_pgh_zip(int index) {
+    return pgh[index];
+  }
+
+  int get_pgh_digit(int index, int dig) {
+    return pgh[index][dig];
+  }
+
+#+END_SRC
+
+| register | variable     |
+|----------+--------------|
+| =%rdi=   | =index=      |
+| =%rsi=   | =dig=        |
+| =%rax=   | return value |
+
+#+BEGIN_SRC asm
+
+  get_pgh_zip:
+        leaq      (%rdi, %rdi, 4), %rax ;%rax = 5 * index
+        leaq      pgh(,%rax,4), %rax    ;%rax = pgh + (20 * index)
+
+  get_pgh_digit:
+        leaq      (%rdi, %rdi, 4), %rax ;%rax = 5 * index
+        addl      %rax, %rsi            ;%rsi += %rax
+        movl      pgh(,%rsi,4), %eax    ;access memory at address [pgh + 4*(5*index+dig)]
+
+#+END_SRC
+
+
+** Multi-Level
+
+#+CAPTION: multi-level array
+#+ATTR_HTML: :width 500px
+[[./res/multi_level_array.png]]
+
+#+BEGIN_SRC C
+
+  zip_dig ucla = {1, 2, 3, 4, 5};
+
+  #define UCOUNT 1
+  int *univ[UCOUNT] = {ucla};
+
+  int get_univ_digit(size_t index, size_t digit) {
+    return univ[index][digit];
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  get_univ_digit:
+        salq      $2, %rsi              ;%rsi *= 4
+        addq      univ(, %rdi, 8), %rsi ;%rsi += univ[%rdi*8]
+        movl      (%rsi), %eax          ;return memory located at address %rsi
+        ret
+
+#+END_SRC
+
+ - each element is a pointer
+ - each pointer points to array of ints
+ - =univ[index][digit]= is equivalent to =MEM[ MEM[ univ+8*index ] + 4*digit ]=
+
+
+** Matrix
+
+*** fixed dimension
+
+#+BEGIN_SRC C
+
+  #define N 16
+  typedef int fix_matrix[N][N];
+
+  int fix_ele(fix_matrix a, size_t i, size_t j) {
+    return a[i][j];
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  fix_ele:
+        salq      $6, %rsi              ;i >>= 4
+        addq      %rsi, %rdi            ;a += i
+        movq      (%rdi, %rdx, 4), %eax ;return memory at address
+
+#+END_SRC
+
+*** variable dimension
+
+#+BEGIN_SRC C
+
+  int var_ele(size_t n, int a[n][n], size_t i, size_t j) {
+    return a[i][j];
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  var_ele:
+        imulq     %rdx, %rdi            ;n*i
+        leaq      (%rsi, %rdi, 4), %rax ;a + 4*n*i
+        movl      (%rax, %rcx, 4), %eax ;MEM[ a + 4*n*i + 4*j ]
+        ret
+
+#+END_SRC
+
+
+* Structures
+
+
+* Floating Point

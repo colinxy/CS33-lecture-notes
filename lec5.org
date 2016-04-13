@@ -233,7 +233,7 @@ additional arguments are allocated on the stack
 
   long call_incr() {
     long v1 = 15213;
-    long v2 = incr(&vi, 3000);
+    long v2 = incr(&v1, 3000);
     return v1 + v2;
   }
 
@@ -243,7 +243,6 @@ additional arguments are allocated on the stack
 |----------+-------------------------------------------|
 | =%rdi=   | first argument passed to =incr= , =&v1=   |
 | =%rsi=   | second argument passed to =incr= , =3000= |
-|          |                                           |
 
 #+BEGIN_SRC asm
 

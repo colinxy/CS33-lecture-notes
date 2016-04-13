@@ -175,6 +175,7 @@ memory-memory transfer connot be done with a single instruction
  - =leaq src, dest=
    - =src= is address mode expression
    - set =dest= to address denoted by expression
+   - do not access memory
 
 **** Arithmetic Operations
 

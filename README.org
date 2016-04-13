@@ -18,7 +18,7 @@ The code has now been corrected to C int behavior *EXACTLY*.
 
 This library is best run interactively.
 
-=binutil.Py= provides an class =Int= for mimicking C signed integers.
+=binutil.py= provides an class =Int= for mimicking C signed integers.
 
 #+BEGIN_SRC python
 

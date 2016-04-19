@@ -216,9 +216,3 @@ _Row-Major ordering_
         ret
 
 #+END_SRC
-
-
-* Structures
-
-
-* Floating Point

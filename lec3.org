@@ -21,7 +21,7 @@ disassemble object code: =objdump -d=
 
 disassemble in =gdb=: =disassemble <function_name>=
 
-*** x86-64 integer registers
+*** x86-64 Integer Registers
 
 in x86-64, each register is of 8 bytes
 
@@ -170,7 +170,7 @@ memory-memory transfer connot be done with a single instruction
 #+END_SRC
 
 
-*** Address computation Instruction
+*** Address Computation Instruction
 
  - =leaq src, dest=
    - =src= is address mode expression
@@ -179,40 +179,40 @@ memory-memory transfer connot be done with a single instruction
 
 **** Arithmetic Operations
 
-instructions that ends with
+instructions that ends with (instruction suffix)
  - =b= : operate on 1 byte
  - =w= : operate on last 2 bytes
  - =l= : operate on last 4 bytes
  - =q= : operate on last 8 bytes
 
-| /                 | <>                      | <>               |
-| format            | computation             | note             |
-|-------------------+-------------------------+------------------|
-| =addq   src,dest= | =dest = dest + src=     |                  |
-|-------------------+-------------------------+------------------|
-| =subq   src,dest= | =dest = dest - src=     |                  |
-|-------------------+-------------------------+------------------|
-| =imulq  src,dest= | =dest = dest * src=     |                  |
-|-------------------+-------------------------+------------------|
-| =salq   src,dest= | =dest = dest << src=    | also called shlq |
-|-------------------+-------------------------+------------------|
-| =sarq   src,dest= | =dest = dest >> src=    | arithmetic       |
-|-------------------+-------------------------+------------------|
-| =shrq   src,dest= | =dest = dest >> src=    | logical          |
-|-------------------+-------------------------+------------------|
-| =xorq   src,dest= | =dest = dest ^ src=     |                  |
-|-------------------+-------------------------+------------------|
-| =andq   src,dest= | =dest = dest & src=     |                  |
-|-------------------+-------------------------+------------------|
-| =orq    src,dest= | =dest = dest \vert src= |                  |
-|-------------------+-------------------------+------------------|
-| =incq   dest=     | =dest = dest + 1=       |                  |
-|-------------------+-------------------------+------------------|
-| =decq   dest=     | =dest = dest - 1=       |                  |
-|-------------------+-------------------------+------------------|
-| =negq   dest=     | =dest = -dest=          |                  |
-|-------------------+-------------------------+------------------|
-| =notq   dest=     | =dest = ~dest=          |                  |
+| /                 | <>                          | <>               |
+| format            | computation                 | note             |
+|-------------------+-----------------------------+------------------|
+| =addq   src,dest= | =dest = dest + src=         |                  |
+|-------------------+-----------------------------+------------------|
+| =subq   src,dest= | =dest = dest - src=         |                  |
+|-------------------+-----------------------------+------------------|
+| =imulq  src,dest= | =dest = dest * src=         |                  |
+|-------------------+-----------------------------+------------------|
+| =salq   src,dest= | =dest = dest << src=        | also called shlq |
+|-------------------+-----------------------------+------------------|
+| =sarq   src,dest= | =dest = dest >> src=        | arithmetic       |
+|-------------------+-----------------------------+------------------|
+| =shrq   src,dest= | =dest = dest >> src=        | logical          |
+|-------------------+-----------------------------+------------------|
+| =xorq   src,dest= | =dest = dest ^ src=         |                  |
+|-------------------+-----------------------------+------------------|
+| =andq   src,dest= | =dest = dest & src=         |                  |
+|-------------------+-----------------------------+------------------|
+| =orq    src,dest= | =dest= ~= dest~ \vert =src= |                  |
+|-------------------+-----------------------------+------------------|
+| =incq   dest=     | =dest = dest + 1=           |                  |
+|-------------------+-----------------------------+------------------|
+| =decq   dest=     | =dest = dest - 1=           |                  |
+|-------------------+-----------------------------+------------------|
+| =negq   dest=     | =dest = -dest=              |                  |
+|-------------------+-----------------------------+------------------|
+| =notq   dest=     | =dest = ~dest=              |                  |
 
 
 **** example1

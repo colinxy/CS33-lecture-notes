@@ -1,0 +1,149 @@
+#+DATE: <2016-04-18 Mon>
+
+
+TODO : check leaq instructions of previous examples
+leaq does not access memory
+* TODO Structures
+
+#+BEGIN_SRC C
+
+  struct rec {
+    int a[4];
+    size_t i;
+    struct rec *next;
+  }
+
+  int *get_ap(struct rec *r, size_t idx) {
+    return &r->a[idx];
+  }
+
+  void set_val(struct rec *r, int val) {
+    while (r) {
+      int i = r->i;
+      r->a[i] = val;
+      r = r->next;
+    }
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+
+
+#+END_SRC
+
+
+** Structures and Alignment
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_alignment.png]]
+
+ - Aligned Data
+   - primitive data type requires =K= bytes
+   - address must be multiple of =K=
+
+ - Motivation
+   - memory accessed by (aligned) chunks of 4 or 8 bytes
+     - inefficient to load or store datum that spans quad word boundaries
+     - virtual memory trickier when datum spans 2 pages
+
+
+** Arrays of Structures
+
+#+ATTR_HTML: :width 500px
+[[./res/array_of_structure.png]]
+
+ - overall structure length of multiple of =K=
+ - satify alignment requirement for every element
+
+*** access array elements
+
+#+BEGIN_SRC C
+
+
+
+#+END_SRC
+
+*** save space
+
+ - put large data types first
+
+#+BEGIN_SRC C
+
+  struct s4 {
+    char c;
+    int i;
+    char d;
+  };
+
+  struct s5 {
+    int i;
+    char c;
+    char d;
+  };
+
+#+END_SRC
+
+ - s4 : 12 bytes
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_save_space_s4.png]]
+
+ - s5 : 8 bytes
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_save_space_s5.png]]
+
+
+
+* Union
+
+** Union Allocation
+
+ - allocate according to largest element
+ - can only use 1 field at a time
+
+#+BEGIN_SRC C
+
+  union u1 {
+    char c;
+    int i[2];
+    double v;
+  };
+
+  struct s1 {
+    char c;
+    int i[2];
+    double v;
+  };
+
+#+END_SRC
+
+ - =union=
+
+#+ATTR_HTML: :width 500px
+[[./res/union.png]]
+
+
+ - =struct=
+
+#+ATTR_HTML: :width 500px
+[[./res/structure.png]]
+
+
+#+BEGIN_SRC C
+
+  union bit_float_t {
+    float f;
+    unsigned u;
+  };
+
+  bit_float_t arg;
+  arg.u;                          /* interpret arg as unsigned */
+  arg.f;                          /* interpret arg as float */
+
+#+END_SRC
+
+ - interpret bytes pattern as =unsigned= / =float=
+ - not same as casting

@@ -45,6 +45,7 @@
  - SF set if ~a & b < 0~
 
 
+
 ** Reading conditional codes
 
 *** setX Instructions
@@ -53,6 +54,11 @@
    combinations of condition codes
  - does not alter remaining 7 bytes
    - use =movzbl= to set upper bits to 0
+
+| =mov=    |                                | example                                                          |
+|----------+--------------------------------+------------------------------------------------------------------|
+| =movsXY= | move a byte and sign extend it | ~movsbl~ move a byte from src to dest and sign extend it to long |
+| =movzXY= | move a byte and 0 extend it    | ~movzbl~ move a byte from src to dest and 0 extend it long       |
 
 
 | setX    | condition            | description               |
@@ -111,7 +117,7 @@ converted to assmebly
 
   cmpq    %rsi, %rdi              ;compare x, y
   setg    %al                     ;set lower-order byte of %rax to comparison result
-  movzbl  %al, %rax               ;set result of %rax to 0
+  movzbl  %al, %rax               ;set upper 7 byte of %rax to 0
 
 #+END_SRC
 
@@ -129,11 +135,11 @@ converted to assmebly
 | =jne= | =~ZF=                | not equal / not zero      |
 | =js=  | =SF=                 | negative                  |
 | =jns= | =~SF=                | nonnegative               |
-| =jg=  | =~(SF^OF)&~ZF=       | greater (signed)          |
+| =jg=  | =~(SF^OF) & ~ZF=     | greater (signed)          |
 | =jge= | =~(SF^OF)=           | greater or equal (signed) |
 | =jl=  | =(SF^OF)=            | less (signed)             |
 | =jle= | =(SF^OF)= \vert =ZF= | less or equal (signed)    |
-| =ja=  | =~CF&~ZF=            | above (unsigned)          |
+| =ja=  | =~CF & ~ZF=          | above (unsigned)          |
 | =jb=  | =CF=                 | below (unsigned)          |
 
 *** Conditional Branch example
@@ -426,12 +432,10 @@ equivalent to
 | =%rdx=   | =z=          |
 | =%rax=   | return value |
 
-jump table
-
 #+BEGIN_SRC asm
 
           ;; jump table
-  .setction       .rodata
+  .section        .rodata
       .align 8
   .L4:
         .quad     .L8             ;x = 0
@@ -485,4 +489,6 @@ jump table
 
    - jumping
      - direct: =jmp .L8=
+       - go to instruction at address (label) .L8
      - indirect: =jmp *.L4(,%rdi,8)=
+       - go to instruction at address as computed by address computation

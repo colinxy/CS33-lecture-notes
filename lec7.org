@@ -1,9 +1,12 @@
 #+DATE: <2016-04-18 Mon>
 
+* Structures
 
-TODO : check leaq instructions of previous examples
-leaq does not access memory
-* TODO Structures
+** Structure Representation
+
+ - structure represented as block of memory
+ - fields ordered according to declaration
+ - compiler determines overall size + position of fields
 
 #+BEGIN_SRC C
 
@@ -27,17 +30,33 @@ leaq does not access memory
 
 #+END_SRC
 
+#+ATTR_HTML: :width 500px
+[[./res/structure.png]]
+
+| register | variable        |
+|----------+-----------------|
+| =%rdi=   | first argument  |
+| =%rsi=   | second argument |
+
 #+BEGIN_SRC asm
 
+  get_ap:
+        leaq    (%rdi,%rsi,4), %rax
+        ret
 
+  set_val:
+  .L11:
+        movsql    16(%rdi), %rax
+        movl      %esi, (%rdi,%rax,4)
+        movq      24(%rdi), %rdi
+        testq     %rdi, %rdi
+        jne       .L11
+        ret
 
 #+END_SRC
 
 
 ** Structures and Alignment
-
-#+ATTR_HTML: :width 500px
-[[./res/structure_alignment.png]]
 
  - Aligned Data
    - primitive data type requires =K= bytes
@@ -48,8 +67,70 @@ leaq does not access memory
      - inefficient to load or store datum that spans quad word boundaries
      - virtual memory trickier when datum spans 2 pages
 
+| bytes    | example               | requirement                          |
+|----------+-----------------------+--------------------------------------|
+| 1 byte   | =char=                | no restriction                       |
+| 2 bytes  | =short=               | lowest 1 bit of address must be 0    |
+| 4 bytes  | =int, float=          | lowest 2 bit of address must be 00   |
+| 8 bytes  | =double, long, char*= | lowest 3 bit of address must be 000  |
+| 16 bytes | =long double=         | lowest 4 bit of address must be 0000 |
+
+
+** Satisfying Alignment with Structures
+
+ - within structure
+   - satisfy each element's alignment requirement
+ - overall structure placement
+   - each structure has alignment requirement =K=
+     - =K= = largest alignment of any element in struct
+   - initial address & structure must be multiples of =K=
+
+*** example
+
+**** struct
+
+ - =K= = 8, due to =double= element
+
+#+BEGIN_SRC C
+
+  struct S1 {
+    char c;
+    int i[2];
+    double v;
+  } *p;
+
+#+END_SRC
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_alignment1.png]]
+
+**** reordered within struct
+
+#+BEGIN_SRC C
+
+  struct S2 {
+    double v;
+    int i[2];
+    char c;
+  } *p;
+
+#+END_SRC
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_alignment2.png]]
+
 
 ** Arrays of Structures
+
+#+BEGIN_SRC C
+
+  struct S2 {
+    double v;
+    int i[2];
+    char c;
+  } a[10];
+
+#+END_SRC
 
 #+ATTR_HTML: :width 500px
 [[./res/array_of_structure.png]]
@@ -61,9 +142,33 @@ leaq does not access memory
 
 #+BEGIN_SRC C
 
+  struct S3 {
+    short i;
+    float v;
+    short j;
+  } a[10];
 
+  short get_j(int idx) {
+    return a[idx].j;
+  }
 
 #+END_SRC
+
+#+BEGIN_SRC asm
+
+  leaq    (%rdi,%rdi,2), %rax
+  movzwl  a+8(,%rax,4), %eax
+
+#+END_SRC
+
+#+ATTR_HTML: :width 500px
+[[./res/structure_array.png]]
+
+ - compute array offset =12 * idx=
+   - =sizeof(S3)=, including alignment spacers
+ - element j is at offset 8 within structure
+ - assembler gives offset a+8 (resolved during linking)
+
 
 *** save space
 
@@ -94,7 +199,6 @@ leaq does not access memory
 
 #+ATTR_HTML: :width 500px
 [[./res/structure_save_space_s5.png]]
-
 
 
 * Union
@@ -129,15 +233,15 @@ leaq does not access memory
  - =struct=
 
 #+ATTR_HTML: :width 500px
-[[./res/structure.png]]
+[[./res/structure_.png]]
 
 
 #+BEGIN_SRC C
 
-  union bit_float_t {
+  typedef union {
     float f;
     unsigned u;
-  };
+  } bit_float_t;
 
   bit_float_t arg;
   arg.u;                          /* interpret arg as unsigned */
@@ -147,3 +251,68 @@ leaq does not access memory
 
  - interpret bytes pattern as =unsigned= / =float=
  - not same as casting
+
+
+* Byte Ordering Revisited
+
+ - =short= / =long= / =quad= stored in memory as 2/4/8 consecutive bytes
+ - which byte is most significant
+ - can cause problem across machine
+
+** Big Endian
+
+ - most significant byte has lowest address
+ - e.g. Sparc
+
+** Little Endian
+
+ - least significant byte has lowest address
+ - e.g. Intel x86, ARM Android, iOS
+
+** Bi Endian
+
+ - can be configured either way
+ - e.g. ARM
+
+** example
+
+#+BEGIN_SRC C
+
+  union {
+    unsigned char c[8];
+    unsigned short s[4];
+    unsigned int i[2];
+    unsigned long l[1];
+  } dw;
+
+#+END_SRC
+
+*** 32 bit, Little Endian
+
+#+ATTR_HTML: :width 500px
+[[./res/little_endian.png]]
+
+*** 32 bit, Big Endian
+
+#+ATTR_HTML: :width 500px
+[[./res/big_endian.png]]
+
+
+* Summary of Compound Types in C
+
+** Arrays
+
+ - contiguous allocation of memory
+ - aligned to satisfy every element's alignment requirement
+ - pointer to first element
+ - no bounds checking
+
+** Structure
+
+ - allocate bytes in order declared
+ - pad in middle and at end to satify alignment
+
+** Unions
+
+ - overlay declarations
+ - way to circumvent type system

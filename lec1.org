@@ -1,4 +1,7 @@
+#+TITLE: Lecture 1
 #+DATE:  <2016-03-28 Mon>
+#+OPTIONS: author:nil
+
 
 * Bits, Bytes, and Integers
 
@@ -17,11 +20,14 @@
  - Xor ^
 
 *** example
-=76543210=
 
-=01101001:  {0, 3, 5, 6} in bit set=
+#+BEGIN_EXAMPLE
 
-=01010101:  {0, 2, 4, 6} in bit set=
+76543210
+01101001:  {0, 3, 5, 6} in bit set
+01010101:  {0, 2, 4, 6} in bit set
+
+#+END_EXAMPLE
 
  - operate on bit vectors
  - Representing and Manipulation of Sets
@@ -30,7 +36,7 @@
    - ^ symmetric difference  ={2, 3, 4, 5}=
    - ~ complement
 
-*** contrast to logic operation
+*** Contrast to Logic Operation
    - logical operator  && and, || or, ! nor
      - 0 as False
      - return 0 or 1
@@ -43,7 +49,7 @@
      - logical shift: pad with 0
      - arithmetic shift: pad with left most bit
    - undefined behavior
-     - shift amount < 0 or >= word size
+     - shift amount =< 0= or ~>=~ word size
 
 | =11100010= | operation     |
 |------------+---------------|
@@ -64,13 +70,14 @@
 
 *** example
 
- =15213=
+#+BEGIN_EXAMPLE
 
- =00111011 01101101=
+15213
+00111011 01101101
+-15213
+11000100 10010011
 
- =-15213=
-
- =11000100 10010011=
+#+END_EXAMPLE
 
  | -15213 in binary | weight |  value |                       |
  |------------------+--------+--------+-----------------------|
@@ -151,11 +158,14 @@
 #+END_SRC
 
 *** example
- =W = 32 (word size)=
 
- =TMIN = -2147483648=
+#+BEGIN_EXAMPLE
 
- =TMAX = 2147483647=
+W = 32 (word size)
+TMIN = -2147483648
+TMAX = 2147483647
+
+#+END_EXAMPLE
 
  |       const1 |           const2 | result |          |
  |--------------+------------------+--------+----------|

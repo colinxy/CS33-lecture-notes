@@ -1,4 +1,7 @@
+#+TITLE: Lecture 7
 #+DATE: <2016-04-18 Mon>
+#+OPTIONS: author:nil
+
 
 * Structures
 
@@ -156,7 +159,7 @@
 
 #+BEGIN_SRC asm
 
-  leaq    (%rdi,%rdi,2), %rax
+  leaq    (%rdi,%rdi,2), %rax     ;%rax *= 3
   movzwl  a+8(,%rax,4), %eax
 
 #+END_SRC

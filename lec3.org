@@ -1,4 +1,7 @@
+#+TITLE: Lecture 3
 #+DATE: <2016-04-04 Mon>
+#+OPTIONS: author:nil
+
 
 * Machine Level Programming
 
@@ -39,7 +42,7 @@ in x86-64, each register is of 8 bytes
     - e.g. =$0x400, $-533=
   - register: integer register
     - e.g. =%rax=
-    - =%rsp= reserved for special use
+    - =%rsp=, stack pointer, reserved for special use
   - memory: 8 consecutive bytes of memory at address given by register
     - e.g. =(%rax)=
 
@@ -51,16 +54,16 @@ in x86-64, each register is of 8 bytes
 #+END_SRC
 
 #+CAPTION: movq operand combinations
-|           |             |                <l> |                               <r> |
-| source    | destination |      assembly code | C analog (not exactly translated) |
-|-----------+-------------+--------------------+-----------------------------------|
-| immediate | register    |   =movq $0x4,%rax= |                      =temp = 0x4= |
-|           | memory      | =movq $0x4,(%rax)= |                        =*p = 0x4= |
-|-----------+-------------+--------------------+-----------------------------------|
-| register  | register    |   =movq %rax,%rdx= |                   =temp2 = temp1= |
-|           | memory      | =movq %rax,(%rdx)= |                       =*p = temp= |
-|-----------+-------------+--------------------+-----------------------------------|
-| memory    | register    | =movq (&rax),%rdx= |                       =temp = *p= |
+|           |             | <l>                |                                   <r> |
+| source    | destination | assembly code      | C analog (not exactly transliterated) |
+|-----------+-------------+--------------------+---------------------------------------|
+| immediate | register    | =movq $0x4,%rax=   |                          =temp = 0x4= |
+|           | memory      | =movq $0x4,(%rax)= |                            =*p = 0x4= |
+|-----------+-------------+--------------------+---------------------------------------|
+| register  | register    | =movq %rax,%rdx=   |                       =temp2 = temp1= |
+|           | memory      | =movq %rax,(%rdx)= |                           =*p = temp= |
+|-----------+-------------+--------------------+---------------------------------------|
+| memory    | register    | =movq (&rax),%rdx= |                           =temp = *p= |
 
 
 **** example: memory-memory transfer
@@ -175,15 +178,9 @@ memory-memory transfer connot be done with a single instruction
  - =leaq src, dest=
    - =src= is address mode expression
    - set =dest= to address denoted by expression
-   - do not access memory
+   - *_do not access memory_*
 
 **** Arithmetic Operations
-
-instructions that ends with (instruction suffix)
- - =b= : operate on 1 byte
- - =w= : operate on last 2 bytes
- - =l= : operate on last 4 bytes
- - =q= : operate on last 8 bytes
 
 | /                 | <>                          | <>               |
 | format            | computation                 | note             |
@@ -214,6 +211,12 @@ instructions that ends with (instruction suffix)
 |-------------------+-----------------------------+------------------|
 | =notq   dest=     | =dest = ~dest=              |                  |
 
+instructions that ends with (instruction suffix)
+ - =b= : operate on lower-order 1 byte
+ - =w= : operate on lower-order 2 bytes
+ - =l= : operate on lower-order 4 bytes
+ - =q= : operate on lower-order 8 bytes
+
 
 **** example1
 
@@ -231,7 +234,7 @@ converted to assembly
 
           ;; %rdi stores value of x
   leaq    (%rdi,%rdi,2), %rax     ;%rax = x * 3
-  salq    $2, %rax                ;%rax = %rax * 4
+  salq    $2, %rax                ;%rax = %rax << 2
 
 #+END_SRC
 
@@ -268,7 +271,7 @@ converted to assembly
   addq    %rdx, %rax              ;t2 = t1 + z
   leaq    (%rsi,%rsi,2), %rdx     ;t4 = y * 3
   salq    $4, %rdx                ;t4 = t4 << 4
-  leaq    4(%rdi,%rdx), %rcx      ;t5 = t3 + x + 4
+  leaq    4(%rdi,%rdx), %rcx      ;t5 = t4 + x + 4
   imulq   %rcx, %rax              ;rval = t2 * t5
 
 #+END_SRC

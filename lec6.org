@@ -1,4 +1,7 @@
+#+TITLE: Lecture 6
 #+DATE: <2016-04-13 Wed>
+#+OPTIONS: author:nil
+
 
 * Arrays
 

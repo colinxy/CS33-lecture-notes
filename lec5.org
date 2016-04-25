@@ -1,4 +1,7 @@
+#+TITLE: Lecture 5
 #+DATE: <2016-04-11 Mon>
+#+OPTIONS: author:nil
+
 
 * x86-64 Stack
 
@@ -68,7 +71,7 @@
         push      %rbx            ;save %rbx
         mov       %rdx, %rbx      ;%rdx is the 3rd argument dest; save dest
         callq     <mult2>         ;mult2(x, y)
-        mov       %rax, (%rbx)    ;write return value of mult2 to %rbx
+        mov       %rax, (%rbx)    ;write return value of mult2 to address %rbx
         pop       %rbx            ;restore %rbx
         retq
 
@@ -86,7 +89,7 @@
    - push return address on stack
    - jump to =label=
 
- - return address
+ - return address (jump to address after =ret= instruction)
    - address of the next instruction right after call
 
  - procedure return: =ret=
@@ -113,14 +116,16 @@
 
 ** Passing Data
 
-| register | first 6 arguments | return value |
-|----------+-------------------+--------------|
-|          | =%rdi=            | =%rax=       |
-|          | =%rsi=            |              |
-|          | =%rdx=            |              |
-|          | =%rcx=            |              |
-|          | =%r8=             |              |
-|          | =%r9=             |              |
+| usage        | register |
+|--------------+----------|
+| 1st argument | =%rdi=   |
+| 2nd argument | =%rsi=   |
+| 3rd argument | =%rdx=   |
+| 4th argument | =%rcx=   |
+| 5th argument | =%r8=    |
+| 6th argument | =%r9=    |
+|--------------+----------|
+| return value | =%rax=   |
 
 additional arguments are allocated on the stack
 

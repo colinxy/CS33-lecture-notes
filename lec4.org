@@ -1,4 +1,7 @@
+#+TITLE: Lecture 4
 #+DATE: <2016-04-06 Wed>
+#+OPTIONS: author:nil
+
 
 * Condition Codes
 
@@ -55,10 +58,17 @@
  - does not alter remaining 7 bytes
    - use =movzbl= to set upper bits to 0
 
-| =mov=    |                                | example                                                          |
-|----------+--------------------------------+------------------------------------------------------------------|
-| =movsXY= | move a byte and sign extend it | ~movsbl~ move a byte from src to dest and sign extend it to long |
-| =movzXY= | move a byte and 0 extend it    | ~movzbl~ move a byte from src to dest and 0 extend it long       |
+| instruction         |                                                         |
+|---------------------+---------------------------------------------------------|
+| =movsXY=            | move a byte and sign extend it                          |
+| =movzXY=            | move a byte and 0 extend it                             |
+|---------------------+---------------------------------------------------------|
+| example             | explanation                                             |
+|---------------------+---------------------------------------------------------|
+| ~movsbl~            | move a byte from src to dest and sign extend it to long |
+| ~movzbl~            | move a byte from src to dest and 0 extend it to long    |
+| ~movsbl $0xFF %eax~ | ~%eax = 0xFFFFFFFF~                                     |
+| ~movzbl $0xFF %eax~ | ~%eax = 0x000000FF~                                     |
 
 
 | setX    | condition            | description               |
@@ -67,11 +77,11 @@
 | =setne= | =~ZF=                | not equal / not zero      |
 | =sets=  | =SF=                 | negative                  |
 | =setns= | =~SF=                | nonnegative               |
-| =setg=  | =~(SF^OF)&~ZF=       | greater (signed)          |
+| =setg=  | =~(SF^OF) & ~ZF=     | greater (signed)          |
 | =setge= | =~(SF^OF)=           | greater or equal (signed) |
 | =setl=  | =(SF^OF)=            | less (signed)             |
 | =setle= | =(SF^OF)= \vert =ZF= | less or equal (signed)    |
-| =seta=  | =~CF&~ZF=            | above (unsigned)          |
+| =seta=  | =~CF & ~ZF=          | above (unsigned)          |
 | =setb=  | =CF=                 | below (unsigned)          |
 
 #+CAPTION: x84-64 integer registers
@@ -84,7 +94,7 @@
 | =%rsi=            | =%esi=              | =%sil=             |                 |
 | =%rdi=            | =%edi=              | =%dil=             |                 |
 | =%rsp=            | =%esp=              | =%spl=             | _stack pointer_ |
-| =%rbp=            | =%ebp=              | =%bpl=             |                 |
+| =%rbp=            | =%ebp=              | =%bpl=             | _base pointer_  |
 | =%r8=             | =%r8d=              | =%r8b=             |                 |
 | =%r9=             | =%r9d=              | =%r9b=             |                 |
 | =%r10=            | =%r10d=             | =%r10b=            |                 |
@@ -270,7 +280,7 @@ _Both values get computed_
 
 ** Do-While Loop
 
-do-while
+ - do-while
 
 #+BEGIN_SRC C
 
@@ -280,7 +290,7 @@ do-while
 
 #+END_SRC
 
-goto
+ - goto
 
 #+BEGIN_SRC C
 
@@ -295,7 +305,7 @@ goto
 
  - count number of 1's in argument x
 
-do-while version
+ - do-while version
 
 #+BEGIN_SRC C
 
@@ -310,7 +320,7 @@ do-while version
 
 #+END_SRC
 
-goto version
+ - goto version
 
 #+BEGIN_SRC C
 
@@ -347,7 +357,7 @@ goto version
 
 ** While Loop
 
-while loop
+ - while loop
 
 #+BEGIN_SRC C
 
@@ -356,7 +366,7 @@ while loop
 
 #+END_SRC
 
-goto
+ - goto
 
 #+BEGIN_SRC C
 
@@ -436,7 +446,7 @@ equivalent to
 
           ;; jump table
   .section        .rodata
-      .align 8
+        .align 8
   .L4:
         .quad     .L8             ;x = 0
         .quad     .L3             ;x = 1

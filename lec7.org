@@ -141,7 +141,7 @@
  - overall structure length of multiple of =K=
  - satify alignment requirement for every element
 
-*** access array elements
+*** Access Array Elements
 
 #+BEGIN_SRC C
 
@@ -173,7 +173,7 @@
  - assembler gives offset a+8 (resolved during linking)
 
 
-*** save space
+*** Save Space
 
  - put large data types first
 
@@ -217,13 +217,13 @@
     char c;
     int i[2];
     double v;
-  };
+  } *up;
 
   struct s1 {
     char c;
     int i[2];
     double v;
-  };
+  } *sp;
 
 #+END_SRC
 

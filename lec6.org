@@ -50,7 +50,7 @@
 
 #+BEGIN_SRC asm
 
-  movl    (%rdi, %rsi, 4), %eax   ;z[digit]
+  movl    (%rdi,%rsi,4), %eax     ;z[digit]
 
 #+END_SRC
 
@@ -77,8 +77,8 @@
         movl      $0, %eax        ;i = 0
         jmp       .L3
   .L4:
-        addl      $1, (%rdi, %rax, 4) ;z[i]++
-        addq      $1, %rax            ;i++
+        addl      $1, (%rdi,%rax,4) ;z[i]++
+        addq      $1, %rax          ;i++
   .L3:
         cmpq      $4, %rax        ;compare i, ZLEN-1
         jbe       .L4             ;if <=, goto .L4
@@ -92,21 +92,22 @@
  - 2D array of data type T
  - R rows, C columns
  - array size: =R * C * sizeof(T)=
- - row-major ordering
+ - *_row-major ordering_*
 
-*** access
+*** Access
 
 =T A[R][C]=
- - =A[i]= is an array of C element
-   - starting address =A + i*(C*K)=
+ - each element of type T requires =K= bytes
+ - =A[i]= is an array of =C= element
+   - starting address  $$ A + i \times (C \times K) $$
  - =A[i][j]= is an element of type T
-   - address =A + i*(C*K) + j*K=
+   - address $$ A + i \times (C \times K) + j \times K $$
 
 #+CAPTION: multidimensional array memory layout
 #+ATTR_HTML: :width 500px
 [[./res/multi_dim_array.png]]
 
-_Row-Major ordering_
+*_Row-Major Ordering_*
 
 #+BEGIN_SRC C
 
@@ -131,13 +132,13 @@ _Row-Major ordering_
 #+BEGIN_SRC asm
 
   get_pgh_zip:
-        leaq      (%rdi, %rdi, 4), %rax ;%rax = 5 * index
-        leaq      pgh(,%rax,4), %rax    ;%rax = pgh + (20 * index)
+        leaq      (%rdi,%rdi,4), %rax  ;%rax = 5 * index
+        leaq      pgh(,%rax,4), %rax   ;%rax = pgh + (20 * index)
 
   get_pgh_digit:
-        leaq      (%rdi, %rdi, 4), %rax ;%rax = 5 * index
-        addl      %rax, %rsi            ;%rsi += %rax
-        movl      pgh(,%rsi,4), %eax    ;access memory at address [pgh + 4*(5*index+dig)]
+        leaq      (%rdi,%rdi,4), %rax  ;%rax = 5 * index
+        addl      %rax, %rsi           ;%rsi += %rax
+        movl      pgh(,%rsi,4), %eax   ;access memory MEM[ pgh + 4*(5*index+dig) ]
 
 #+END_SRC
 
@@ -165,20 +166,20 @@ _Row-Major ordering_
 
   get_univ_digit:
         salq      $2, %rsi              ;%rsi *= 4
-        addq      univ(, %rdi, 8), %rsi ;%rsi += univ[%rdi*8]
+        addq      univ(,%rdi,8), %rsi   ;%rsi += univ[%rdi*8]
         movl      (%rsi), %eax          ;return memory located at address %rsi
         ret
 
 #+END_SRC
 
  - each element is a pointer
- - each pointer points to array of ints
+ - each pointer points to an array of ints
  - =univ[index][digit]= is equivalent to =MEM[ MEM[ univ+8*index ] + 4*digit ]=
 
 
 ** Matrix
 
-*** fixed dimension
+*** Fixed Dimension
 
 #+BEGIN_SRC C
 
@@ -194,13 +195,13 @@ _Row-Major ordering_
 #+BEGIN_SRC asm
 
   fix_ele:
-        salq      $6, %rsi              ;i >>= 4
+        salq      $6, %rsi              ;i *= 64  (64 = 16columns * sizeof(int))
         addq      %rsi, %rdi            ;a += i
-        movq      (%rdi, %rdx, 4), %eax ;return memory at address
+        movq      (%rdi,%rdx,4), %eax   ;return memory at address
 
 #+END_SRC
 
-*** variable dimension
+*** Variable Dimension, Implicit Indexing
 
 #+BEGIN_SRC C
 
@@ -214,8 +215,20 @@ _Row-Major ordering_
 
   var_ele:
         imulq     %rdx, %rdi            ;n*i
-        leaq      (%rsi, %rdi, 4), %rax ;a + 4*n*i
-        movl      (%rax, %rcx, 4), %eax ;MEM[ a + 4*n*i + 4*j ]
+        leaq      (%rsi,%rdi,4), %rax   ;a + 4*n*i
+        movl      (%rax,%rcx,4), %eax   ;MEM[ a + 4*n*i + 4*j ]
         ret
+
+#+END_SRC
+
+*** Variable Dimension, Explicit Indexing
+
+#+BEGIN_SRC C
+
+  #define IDX(n, i, j) ((i)*(n)+(j))
+
+  int vec_ele(size_t n, int *a, size_t i, size_t j) {
+    return a[ IDX(n, i, j) ];
+  }
 
 #+END_SRC

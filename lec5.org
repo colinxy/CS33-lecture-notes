@@ -89,7 +89,7 @@
    - push return address on stack
    - jump to =label=
 
- - return address (jump to address after =ret= instruction)
+ - return address (address to jump to after =ret= instruction)
    - address of the next instruction right after call
 
  - procedure return: =ret=
@@ -182,6 +182,8 @@ additional arguments are allocated on the stack
 #+BEGIN_EXAMPLE
 
          || stack bottom ||
+         ||--------------||
+         ||              ||
          ||              ||
          ||              ||
  caller  || arguments 7+ ||
@@ -252,10 +254,10 @@ additional arguments are allocated on the stack
 #+BEGIN_SRC asm
 
   call_incr:
-        subq      $16, %rsp       ;reserve space for temporary variable (15213) and return value
+        subq      $16, %rsp       ;space for temp var (15213) and ret value
         movq      $15213, 8(%rsp) ;write 15213 to address 8+%rsp (&v1)
-        movl      $3000, %rsi     ;write 3000 as the second argument passed to incr
-        leaq      8(%rsp), %rdi   ;write address of 8+%rsp (&v1) as the first argument passed to incr
+        movl      $3000, %rsi     ;3000 as the second arg passed to incr
+        leaq      8(%rsp), %rdi   ;8+%rsp (&v1) as the first arg
         call      incr
         addq      8(%rsp), %rax   ;%rax += v1
         addq      $16, %rsp       ;deallocate space previously reserved
@@ -288,10 +290,10 @@ additional arguments are allocated on the stack
 
  - conventions
    - caller saved
-     - caller saves temporary values in its frame before the call
+     - caller saves temporary values in its frame before =call=
    - callee saved
      - callee saves temporary values in its frame before using
-     - callee restores them before returning to caller
+     - callee restores them before =ret= to caller
 
 **** x86-64 Linux Register Usage
 
@@ -381,7 +383,7 @@ additional arguments are allocated on the stack
     if (x == 0)
       return 0;
     else
-      return (x & 1) + pcount_r(x << 1);
+      return (x & 1) + pcount_r(x >> 1);
   }
 
 #+END_SRC

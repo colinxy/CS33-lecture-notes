@@ -113,6 +113,10 @@ class Int(int):
         value = self.__class__(value, self.bits)
         return self.__class__.__sub__(value, self)
 
+    # negate
+    def __neg__(self):
+        return 0 - self
+
     # *
     def __mul__(self, value):
         if not isinstance(value, self.__class__):

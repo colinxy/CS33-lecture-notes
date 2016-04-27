@@ -63,6 +63,7 @@
 
  - Aligned Data
    - primitive data type requires =K= bytes
+     - =K= = *_largest alignment of any element in struct_*
    - address must be multiple of =K=
 
  - Motivation

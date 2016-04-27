@@ -14,11 +14,21 @@ towards negative infinity, while in C is to round towards 0.
 
 The code has now been corrected to C int behavior *EXACTLY*.
 
+
 * Usage for binutil.py
 
 This library is best run interactively.
 
-=binutil.py= provides an class =Int= for mimicking C signed integers.
+*NOTE*: for the =Float= class, it is assumed that floating point numbers
+and integers were represented in the same endianness,
+and only little endian and big endian is accepted. Also, floating
+might not be represented accurately.
+
+This library provides 2 classes for inspecting C bit level behavior
+ - =Int=
+ - =Float=
+
+** =Int=
 
 #+BEGIN_SRC python
 
@@ -35,7 +45,7 @@ To use it, open an interactive python session and type
 #+END_SRC
 
 Integers default to 32 bits. You can also use
-=int()= to extract integer value
+=int()= to extract integer value.
 
 #+BEGIN_SRC python
 
@@ -119,3 +129,44 @@ including
 #+END_SRC
 
 Happy hacking binary numbers!
+
+** =Float=
+
+#+BEGIN_SRC python
+
+Float(x, double=False)
+
+#+END_SRC
+
+To use it, open an interactive python session and type
+
+#+BEGIN_SRC python
+
+>>> from binutil import Float
+
+#+END_SRC
+
+For floating point numbers, only C float (32 bits) and
+C double (64 bits) are supported. Floats are default to
+32 bits. To use the 64 bits version, pass =True= as the
+second argument. You can also use =float()= to extract
+floating point value
+
+#+BEGIN_SRC python
+
+>>> Float(1.0)
+00111111 10000000 00000000 00000000
+
+>>> Float(1.0, True)
+00111111 11110000 00000000 00000000 00000000 00000000 00000000 00000000
+
+>>> x = Float(1.0)
+>>> x
+00111111 10000000 00000000 00000000
+>>> float(x)
+1.0
+
+#+END_SRC
+
+Please to do not combine =Int= class and =Float= class in
+one arithmetic expression.

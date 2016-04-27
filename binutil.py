@@ -7,17 +7,25 @@ mimic behavior of C int/float
 
 # for compatibility with python2
 from __future__ import division
+import sys
+import struct
 try:
     from string import maketrans  # python 2
 except ImportError:
     maketrans = str.maketrans     # python 3
 
+INVERT_TABLE = maketrans('01', '10')
+
+ENDIANNESS = sys.byteorder
+if ENDIANNESS != 'little' and ENDIANNESS != 'big':
+    raise OSError("unsupported endianness")
+BYTE_REVERSED = ENDIANNESS == 'little'
 
 GROUP_BY = 8
 
 
 def signed(binary):
-    """convert signed binary to decimal
+    """convert 2's complement binary to decimal
     """
     binary = ''.join(binary.split())
     if binary[0] == '1':
@@ -26,8 +34,7 @@ def signed(binary):
 
 
 def invert(binary):
-    invert_table = maketrans('01', '10')
-    return binary.translate(invert_table)
+    return binary.translate(INVERT_TABLE)
 
 
 def pad_space(binary):
@@ -51,7 +58,7 @@ def min_bin(x):
         return '1' + bin(2 ** bits - x)[2:].rjust(bits, '0')
 
 
-def bin2(x, bits=32):
+def int2bin(x, bits=32):
     """display signed integer right aligned in binary
     use 2's complement
     """
@@ -63,33 +70,44 @@ def bin2(x, bits=32):
     return pad_space(output.rjust(bits, output[0]))
 
 
+def byte2bin(byte_arr):
+    # indexing bytes in python2 produce a one-item slice of bytes, while
+    # indexing bytes in python3 produce an int
+    # convert bytes to bytearray to resolve this issue
+    return ' '.join(bin(b)[2:].rjust(8, '0')  # 0 extend byte
+                    for b in bytearray(byte_arr))
+
+
 class Int(int):
-    """Mimic behavior of C signed int
+    """Mimic behavior of C signed int.
+
+    For this class, an integer can be chosen to be
+    reprsented in an arbitrary number of bits.
     """
 
     def __new__(cls, x, bits=32):
         """Int(x: int, bits: int = 32) -> Int
         """
-        if bits <= 0:
-            raise ArithmeticError("invalid number of bits for Int: {}".
-                                  format(bits))
+        if bits <= 0 or not isinstance(bits, int):
+            raise ArithmeticError(
+                "{} cannot be used as the number of bits for Int".
+                format(bits))
+        if not isinstance(x, int):
+            raise ArithmeticError(
+                "{} cannot be interpreted as an integer".
+                format(x))
 
         # make sure is negative when 2**(bits-1) < x < 2**bits
-        x = signed(bin2(x, bits))
+        x = signed(int2bin(x, bits))
         return super(Int, cls).__new__(cls, x)
 
     def __init__(self, x, bits=32):
         self.bits = bits
 
-    # def __int__(self):
-    #     # default method might not handle negative numbers correctly
-    #     return signed(str(self))
-
     def __str__(self):
-        return bin2(self, self.bits)
+        return int2bin(self, self.bits)
 
-    def __repr__(self):
-        return str(self)
+    __repr__ = __str__
 
     # +
     def __add__(self, value):
@@ -221,4 +239,33 @@ class Int(int):
 
 
 class Float(float):
-    pass
+    """Mimic behavior of C float.
+
+    For this class, only float (4 bytes) and
+    double (8 bytes) are accepted.
+    """
+
+    def __new__(cls, x, double=False):
+        """Float(x: float, double: bool = False) -> False
+        """
+        if not isinstance(x, (float, int)):
+            raise ArithmeticError(
+                "{} cannot be interpreted as a float".
+                format(x))
+
+        return super(Float, cls).__new__(cls, x)
+
+    def __init__(self, x, double=False):
+        if double:
+            self._struct_fmt = 'd'
+        else:
+            self._struct_fmt = 'f'
+
+    def __str__(self):
+        byte_rep = struct.pack(self._struct_fmt, self)
+        if BYTE_REVERSED:
+            byte_rep = byte_rep[::-1]
+
+        return byte2bin(byte_rep)
+
+    __repr__ = __str__

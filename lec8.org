@@ -1,0 +1,105 @@
+#+TITLE: Lecture 8
+#+DATE: <2016-04-27 Wed>
+#+OPTIONS: author:nil
+
+
+* Memory Layout
+
+ - stack
+   - runtime stack (8MB limit)
+ - heap
+   - dynamically allocated
+   - =malloc=, =calloc=, =new=
+ - data
+ - text / shared library
+
+
+* Buffer Overflow
+
+#+BEGIN_SRC C
+
+  typedef struct {
+    int a[2];
+    double d;
+  } struct_t;
+
+  double fun(int i) {
+    volatile struct_t s;
+    s.d = 3.14;
+    s.a[i] = 1073741824;
+    return s.d;
+  }
+
+#+END_SRC
+
+
+* Float
+
+** Fractional Binary Numbers
+
+#+ATTR_HTML: :width 500px
+[[./res/fractional_binary_number.png]]
+
+ - bits to right of 'binary point' represent fractional powers of 2
+ - representation of rational numbers
+   $$ \sum_{k=-j}^{i} b_k \times 2^k $$
+
+*** example
+
+#+BEGIN_EXAMPLE
+
+value     |   representation
+----------------------------
+5 + 3/4   ==>  101.11
+2 + 7/8   ==>   10.111
+1 + 7/16  ==>    1.0111
+
+#+END_EXAMPLE
+
+ - observations
+   - divide by 2 by shifting right (unsigned)
+   - multiply by 2 by shifting left
+   - number of the form 0.11111_{2} are just below 1.0
+     - \( \sum \frac{1}{2^i} \) goes to 1.0
+     - use notation 1.0 - \epsilon
+
+*** limitations
+
+ - can only reprsent numbers of the form x/2^{k}
+   - other rational numbers have repeating bit representations
+ - just 1 setting of binary point within w bits
+
+
+** Floating Point Representation (IEEE Standard)
+
+ - numerical form (-1)^{s} M 2^{E}
+   - sign bit:    =s=
+   - significand: =M=
+   - exponent:    =E=
+
+
+** Normalized Values
+
+ - when \( exp \neq 00...0 \) and \( exp \neq 11...1 \)
+
+*** example
+
+15213_{10}
+
+ - as an integer \( 11101101101101_{2} \)
+ - as a float \( 1.1101101101101_{2} \times 2^{13} \)
+   - significand
+     - =M= = \( 1.1101101101101_{2} \)
+     - =frac= = \( 11011011011010000000000_{2} \)
+   - exponent
+     - =E= = \( 13 \)
+     - =Bias= = \( 127 \)
+     - =Exp= = \( 140 = 10001100_{2} \)
+   - result
+     - 0 10001100 11011011011010000000000
+
+#+BEGIN_EXAMPLE
+
+
+
+#+END_EXAMPLE

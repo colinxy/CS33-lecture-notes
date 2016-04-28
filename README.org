@@ -128,8 +128,6 @@ including
 
 #+END_SRC
 
-Happy hacking binary numbers!
-
 ** =Float=
 
 #+BEGIN_SRC python
@@ -170,3 +168,6 @@ floating point value
 
 Please to do not combine =Int= class and =Float= class in
 one arithmetic expression.
+
+
+Happy hacking binary numbers!

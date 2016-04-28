@@ -99,9 +99,9 @@
 =T A[R][C]=
  - each element of type T requires =K= bytes
  - =A[i]= is an array of =C= element
-   - starting address  $$ A + i \times (C \times K) $$
+   - starting address  \( A + i \times (C \times K) \)
  - =A[i][j]= is an element of type T
-   - address $$ A + i \times (C \times K) + j \times K $$
+   - address \( A + i \times (C \times K) + j \times K \)
 
 #+CAPTION: multidimensional array memory layout
 #+ATTR_HTML: :width 500px

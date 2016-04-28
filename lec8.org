@@ -3,7 +3,8 @@
 #+OPTIONS: author:nil
 
 
-* Memory Layout
+* TODO Memory Layout
+try memory layout example
 
  - stack
    - runtime stack (8MB limit)
@@ -11,10 +12,18 @@
    - dynamically allocated
    - =malloc=, =calloc=, =new=
  - data
+   - statically allocated data
+   - e.g. global variables, =static= variables, string constants
  - text / shared library
+   - executable machine instructions
+   - read-only
 
 
-* Buffer Overflow
+#+ATTR_HTML: :width 100px
+[[./res/memory_layout.png]]
+
+
+* TODO Buffer Overflow
 
 #+BEGIN_SRC C
 
@@ -68,38 +77,130 @@ value     |   representation
  - can only reprsent numbers of the form x/2^{k}
    - other rational numbers have repeating bit representations
  - just 1 setting of binary point within w bits
+   - limited range of numbers
 
 
-** Floating Point Representation (IEEE Standard)
+** Floating Point Representation (IEEE Standard 754)
 
- - numerical form (-1)^{s} M 2^{E}
-   - sign bit:    =s=
-   - significand: =M=
-   - exponent:    =E=
+ - numerical form \[ (-1)^{s} M 2^{E} \]
+   - sign bit    =s=, determines whether number is negative or positive
+     - most significant bit is sign bit =s=
+   - exponent    =E=, weights value by power of 2
+     - exp field encodes E (*but is not equal to E*)
+   - significand =M=, is normally a fractional value \( 1.0 \leq x < 2.0 \)
+     - frac field encodes M (*but is not equal to M*)
+
+#+ATTR_HTML: :width 500px
+[[./res/single_precision.png]]
+
+#+ATTR_HTML: :width 500px
+[[./res/double_precision.png]]
 
 
 ** Normalized Values
 
  - when \( exp \neq 00...0 \) and \( exp \neq 11...1 \)
 
+ - exponent coded as a biased value: E = Exp - Bias
+   - Exp: unsigned value of exp field
+   - Bias = 2^{k-1} - 1, where k is number of exponent bits
+     - single precision: Bias = 127
+       - Exp: 1~254, E: -126~127
+     - double precision: Bias = 1023
+       - Exp: 1~2046, E: -1022~1023
+
+ - significand coded with implied leading 1: M = 1.xxx...x_{2}
+   - xxx...x: bits of frac field
+   - minimal when frac = 000...0
+     - M = 1.0
+   - maximal when frac = 111...1
+     - M = 2.0 - \epsilon
+ - get extra leading bit for free
+
 *** example
 
 15213_{10}
 
- - as an integer \( 11101101101101_{2} \)
- - as a float \( 1.1101101101101_{2} \times 2^{13} \)
+ - as an integer 11101101101101_{2}
+ - as a float 1.1101101101101_{2} \times 2^{13}
    - significand
-     - =M= = \( 1.1101101101101_{2} \)
-     - =frac= = \( 11011011011010000000000_{2} \)
+     - =M= = 1.1101101101101_{2}
+     - =frac= = 11011011011010000000000_{2}
    - exponent
-     - =E= = \( 13 \)
-     - =Bias= = \( 127 \)
-     - =Exp= = \( 140 = 10001100_{2} \)
+     - =E= = 13
+     - =Bias= = 127
+     - =Exp= = 140 = 10001100_{2}
    - result
      - 0 10001100 11011011011010000000000
 
 #+BEGIN_EXAMPLE
 
+15213
 
+ 11101101101101
+
+1.1101101101101 * 2^13
+
+Significand
+M    = 1.1101101101101
+frac =   11011011011010000000000
+
+Exponent
+E    = 13
+Bias = 127
+Exp  = 140 = 10001100
+
+Result
+0 10001100 11011011011010000000000
 
 #+END_EXAMPLE
+
+
+** Denormalized Values
+
+ - when exp = 000...0
+
+ - exponent value: E = 1 - Bias  (*instead of E = 0 - Bias*)
+
+ - significand coded with implied leading 0: M = 0.xxx...x_{2}
+   - xxx...x: bits of frac field
+
+ - exp = 000...0, frac = 000...0
+   - represents zero value
+   - +0 (positive 0) : 0 00000000 00000000000000000000000
+   - -0 (negative 0) : 1 00000000 00000000000000000000000
+ - exp = 000...0, frac \neq 000...0
+   - numbers closest to 0.0
+   - equispaced
+
+
+** Special Values
+
+ - when exp = 111...1
+
+ - exp = 111...1, frac = 000...0
+   - represents value \infty (infinity)
+   - operation that overflows
+   - both positive and negative
+   - e.g. \( 1.0/0.0 = -1.0/-0.0 = +\infty, 1.0/-0.0 = -\infty \)
+
+ - exp = 111...1, frac = 000...0
+   - Not-a-Number (NaN)
+   - representation case when no numeric value can be determined
+   - e.g. \( \sqrt{-1}, \infty - \infty, \infty \times 0 \)
+
+
+** Summary
+
+#+ATTR_HTML: :width 500px
+[[./res/floating_point_encoding.png]]
+
+\[ (-1)^{s} M 2^{E} \]
+
+| value type         | condition     | exponent       | significand |
+|--------------------+---------------+----------------+-------------|
+| normalized value   |               | E = Exp - Bias |             |
+|--------------------+---------------+----------------+-------------|
+| denormalized value |               | E = 1 - Bias   |             |
+|--------------------+---------------+----------------+-------------|
+| special value      | exp = 111...1 |                |             |

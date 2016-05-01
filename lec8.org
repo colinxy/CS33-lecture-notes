@@ -20,10 +20,40 @@ try memory layout example
 
 
 #+ATTR_HTML: :width 100px
+#+ATTR_LATEX: :width 100px
 [[./res/memory_layout.png]]
 
 
 * TODO Buffer Overflow
+
+*** String Library Code
+
+#+BEGIN_SRC C
+
+  char *gets(char *dest) {
+    int c = getchar();
+    char *p = dest;
+    while (c != EOF && c != '\n') {
+      *p++ = c;
+      c = getchar();
+    }
+    *p = '\0';
+    return dest;
+  }
+
+#+END_SRC
+
+ - library implementation of unix function =gets()=
+   - no way to specify limit on number of characters to read
+
+
+** Avoid Overflow Vulnerabilities in Code
+
+
+** Return-Oriented Programming Attacks
+
+
+#+BEGIN_COMMENT
 
 #+BEGIN_SRC C
 
@@ -41,6 +71,7 @@ try memory layout example
 
 #+END_SRC
 
+#+END_COMMENT
 
 * Float
 
@@ -99,7 +130,7 @@ value     |   representation
 
 ** Normalized Values
 
- - when \( exp \neq 00...0 \) and \( exp \neq 11...1 \)
+ - when exp \neq 00...0 and exp \neq 11...1
 
  - exponent coded as a biased value: E = Exp - Bias
    - Exp: unsigned value of exp field
@@ -138,7 +169,6 @@ value     |   representation
 15213
 
  11101101101101
-
 1.1101101101101 * 2^13
 
 Significand
@@ -184,7 +214,7 @@ Result
    - both positive and negative
    - e.g. \( 1.0/0.0 = -1.0/-0.0 = +\infty, 1.0/-0.0 = -\infty \)
 
- - exp = 111...1, frac = 000...0
+ - exp = 111...1, frac \neq 000...0
    - Not-a-Number (NaN)
    - representation case when no numeric value can be determined
    - e.g. \( \sqrt{-1}, \infty - \infty, \infty \times 0 \)

@@ -78,6 +78,20 @@ def byte2bin(byte_arr):
                     for b in bytearray(byte_arr))
 
 
+def byte2bin_float(byte_arr):
+    binary = ''.join(bin(b)[2:].rjust(8, '0')  # 0 extend byte
+                     for b in bytearray(byte_arr))
+    if len(byte_arr) == 4:
+        # float
+        # 1 sign, 8 exp, 23 frac
+        binary = binary[:1] + ' ' + binary[1:9] + ' ' + binary[9:]
+    elif len(byte_arr) == 8:
+        # double
+        # 1 sign, 11 exp, 52 frac
+        binary = binary[:1] + ' ' + binary[1:12] + ' ' + binary[12:]
+    return binary
+
+
 class Int(int):
     """Mimic behavior of C signed int.
 
@@ -246,7 +260,7 @@ class Float(float):
     """
 
     def __new__(cls, x, double=False):
-        """Float(x: float, double: bool = False) -> False
+        """Float(x: float, double: bool = False) -> Float
         """
         if not isinstance(x, (float, int)):
             raise ArithmeticError(
@@ -266,6 +280,22 @@ class Float(float):
         if BYTE_REVERSED:
             byte_rep = byte_rep[::-1]
 
-        return byte2bin(byte_rep)
+        return byte2bin_float(byte_rep)
 
     __repr__ = __str__
+
+    @classmethod
+    def POS0(cls, double=False):
+        return cls(0.0, double)
+
+    @classmethod
+    def NEG0(cls, double=False):
+        return cls(-0.0, double)
+
+    @classmethod
+    def POS_INF(cls, double=False):
+        return cls(float('inf'), double)
+
+    @classmethod
+    def NEG_INF(cls, double=False):
+        return cls(float('-inf'), double)

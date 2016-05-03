@@ -12,7 +12,10 @@ emacs org-mode, and of course help myself review notes easily.
 The default behavior for integer division in python is to round
 towards negative infinity, while in C is to round towards 0.
 
-The code has now been corrected to C int behavior *EXACTLY*.
+The =Int= class has now been corrected to this C int behavior *EXACTLY*.
+
+The =Float= class now provide a member function =Float.decompose=
+to inspect sign/exponent/mantissa of the flaoting point value.
 
 
 * Usage for binutil.py
@@ -20,9 +23,10 @@ The code has now been corrected to C int behavior *EXACTLY*.
 This library is best run interactively.
 
 *NOTE*: for the =Float= class, it is assumed that floating point numbers
+follow the IEEE 754 standard, and that floating point numbers
 and integers were represented in the same endianness,
 and only little endian and big endian is accepted. Also, floating
-might not be represented accurately.
+point value might not be represented accurately.
 
 This library provides 2 classes for inspecting C bit level behavior
  - =Int=
@@ -128,6 +132,19 @@ including
 
 #+END_SRC
 
+You can also use get TMAX, TMIN value of the specified bit length.
+
+#+BEGIN_SRC C
+
+>>> Int.TMIN(bits=32)
+10000000 00000000 00000000 00000000
+
+>>> Int.TMAX(bits=32)
+01111111 11111111 11111111 11111111
+
+#+END_SRC
+
+
 ** =Float=
 
 #+BEGIN_SRC python
@@ -145,7 +162,7 @@ To use it, open an interactive python session and type
 #+END_SRC
 
 For floating point numbers, only C float (32 bits) and
-C double (64 bits) are supported. Floats are default to
+C double (64 bits) are supported. Float defaults to
 32 bits. To use the 64 bits version, pass =True= as the
 second argument. You can also use =float()= to extract
 floating point value
@@ -153,21 +170,52 @@ floating point value
 #+BEGIN_SRC python
 
 >>> Float(1.0)
-00111111 10000000 00000000 00000000
+0 01111111 00000000000000000000000
 
 >>> Float(1.0, True)
-00111111 11110000 00000000 00000000 00000000 00000000 00000000 00000000
+0 01111111111 0000000000000000000000000000000000000000000000000000
 
 >>> x = Float(1.0)
 >>> x
-00111111 10000000 00000000 00000000
+0 01111111 00000000000000000000000
 >>> float(x)
 1.0
 
 #+END_SRC
 
-Please to do not combine =Int= class and =Float= class in
-one arithmetic expression.
+Use =Float.decompose= to show floating pointing number decomposed in
+(sign, exponent, mantissa) form.
+
+#+BEGIN_SRC C
+
+>>> Float(8.25)
+0 10000010 00001000000000000000000
+>>> sign, exponent, mantissa = Float(8.25).decompose()
+>>> sign, exponent, mantissa
+(1, 3, 1.03125)
+>>> sign * 2**exponent * mantissa
+8.25
+
+#+END_SRC
+
+You can also get positive/negative 0/infinity in floating point
+representation.
+
+#+BEGIN_SRC C
+
+>>> Float.POS0()
+0 00000000 00000000000000000000000
+>>> Float.NEG0()
+1 00000000 00000000000000000000000
+>>> Float.POS_INF()
+0 11111111 00000000000000000000000
+>>> Float.NEG_INF()
+1 11111111 00000000000000000000000
+
+#+END_SRC
+
+Combining =Int= class and =Float= class in one arithmetic expression
+will lose the binary representation.
 
 
 Happy hacking binary numbers!

@@ -1,0 +1,29 @@
+#+TITLE: Lecture 9
+#+DATE: <2016-05-02 Mon>
+#+OPTIONS: author:nil
+
+
+* Fractional Number
+
+
+*** example
+
+#+BEGIN_SRC C
+
+  int x;
+  float f;
+  double d;
+
+#+END_SRC
+
+| condition | expression     | result | explanation                                                  |
+|-----------+----------------+--------+--------------------------------------------------------------|
+|           |                |        |                                                              |
+| d < 0.0   | (d * 2 < 0.0)  | true   |                                                              |
+| d > f     | -f < -d        | true   |                                                              |
+|           | d*d >= 0.0     | true   |                                                              |
+|           | (d+f) - d == f | false  | add a large number d to a small number f, precision overflow |
+
+
+
+* Optimization

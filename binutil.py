@@ -16,10 +16,14 @@ except ImportError:
 
 INVERT_TABLE = maketrans('01', '10')
 
+# for machine representation of floating point numbers
 ENDIANNESS = sys.byteorder
 if ENDIANNESS != 'little' and ENDIANNESS != 'big':
     raise OSError("unsupported endianness")
 BYTE_REVERSED = ENDIANNESS == 'little'
+
+FLOAT_EXP_SIZE = 8
+DOUBLE_EXP_SIZE = 11
 
 GROUP_BY = 8
 
@@ -47,7 +51,7 @@ def pad_space(binary):
 
 
 def min_bin(x):
-    """minimal representation of x in binary
+    """minimal representation of integer x in binary
     use 2's complement
     """
     if x >= 0:
@@ -84,11 +88,15 @@ def byte2bin_float(byte_arr):
     if len(byte_arr) == 4:
         # float
         # 1 sign, 8 exp, 23 frac
-        binary = binary[:1] + ' ' + binary[1:9] + ' ' + binary[9:]
+        binary = (binary[:1] + ' ' +                   # sign bit
+                  binary[1:FLOAT_EXP_SIZE + 1] + ' ' +  # exponent
+                  binary[FLOAT_EXP_SIZE + 1:])          # mantissa
     elif len(byte_arr) == 8:
         # double
         # 1 sign, 11 exp, 52 frac
-        binary = binary[:1] + ' ' + binary[1:12] + ' ' + binary[12:]
+        binary = (binary[:1] + ' ' +                    # sign bit
+                  binary[1:DOUBLE_EXP_SIZE + 1] + ' ' +  # exponent
+                  binary[DOUBLE_EXP_SIZE + 1:])          # mantissa
     return binary
 
 
@@ -275,14 +283,57 @@ class Float(float):
         else:
             self._struct_fmt = 'f'
 
-    def __str__(self):
+    def _byte_rep(self):
         byte_rep = struct.pack(self._struct_fmt, self)
         if BYTE_REVERSED:
             byte_rep = byte_rep[::-1]
+        return byte_rep
 
-        return byte2bin_float(byte_rep)
+    def __str__(self):
+        return byte2bin_float(self._byte_rep())
 
     __repr__ = __str__
+
+    def decompose(self):
+        """
+        Decompose Float into 3-element tuple (sign, exponent, mantissa)
+        sign is either 1 or -1.
+        exponent is an int.
+        mantissa is a float.
+
+        Get the floating point value from the following expression:
+        sign * 2**exponent * mantissa
+
+        If the exponent part of the Float is all 1s,
+        which means the Float is infinity or not-a-number,
+        the exponent part of the tuple will be the corresponding
+        float value, i.e. float('nan') for not-a-number
+        """
+        byte_rep = str(self).split()
+        # sign
+        sign = 1 if byte_rep[0] == '0' else -1
+
+        # exponent
+        exp = int(byte_rep[1], 2)
+        bias = (1 << (len(byte_rep[1]) - 1)) - 1
+        if exp == 0:
+            # denormalized
+            exponent = 1 - bias
+        elif exp == (bias << 1) + 1:
+            exponent = float(self)
+        else:
+            # normalized
+            exponent = exp - bias
+
+        # mantissa
+        frac_size = len(byte_rep[2])
+        frac = int(byte_rep[2], 2)
+        if exp == 0:
+            mantissa = frac / (1 << frac_size)
+        else:
+            mantissa = (frac + (1 << frac_size)) / (1 << frac_size)
+
+        return (sign, exponent, mantissa)
 
     @classmethod
     def POS0(cls, double=False):

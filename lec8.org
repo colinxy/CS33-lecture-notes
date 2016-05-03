@@ -3,7 +3,7 @@
 #+OPTIONS: author:nil
 
 
-* TODO Memory Layout
+* Memory Layout
 try memory layout example
 
  - stack
@@ -19,12 +19,19 @@ try memory layout example
    - read-only
 
 
-#+ATTR_HTML: :width 100px
-#+ATTR_LATEX: :width 100px
+#+ATTR_HTML: :width 150px
+#+ATTR_LATEX: :width 150px
 [[./res/memory_layout.png]]
 
 
-* TODO Buffer Overflow
+* Buffer Overflow
+
+** Vulnerability
+
+ - when exceeding the memory size allocated for an array
+ - most common form
+   - unchecked lengths on string inputs
+     - particularly for bounded character arrays on the stack
 
 *** String Library Code
 
@@ -45,33 +52,144 @@ try memory layout example
 
  - library implementation of unix function =gets()=
    - no way to specify limit on number of characters to read
+ - similar problem with other library functions
+   - =strcpy=, =strcat=: copy strings of arbitrary length
+   - =scanf=, =fscanf=, =sscanf=: when given %s conversion specification
 
 
-** Avoid Overflow Vulnerabilities in Code
+*** Buffer Overflow Attack Example
 
+**** Buffer Overflow Stack
 
-** Return-Oriented Programming Attacks
-
-
-#+BEGIN_COMMENT
+ - overflowed buffer
+ - corrupted return pointer
 
 #+BEGIN_SRC C
 
-  typedef struct {
-    int a[2];
-    double d;
-  } struct_t;
+  void echo() {
+    char buf[4];
+    gets(buf);
+    puts(buf);
+  }
 
-  double fun(int i) {
-    volatile struct_t s;
-    s.d = 3.14;
-    s.a[i] = 1073741824;
-    return s.d;
+  void call_echo() {
+    echo();
   }
 
 #+END_SRC
 
-#+END_COMMENT
+
+#+ATTR_HTML: :width 200px
+#+ATTR_LATEX: :width 200px
+[[./res/buffer_overflow1.png]]
+#+ATTR_HTML: :width 200px
+#+ATTR_LATEX: :width 200px
+[[./res/buffer_overflow2.png]]
+
+
+**** Code Injection Attack
+
+#+BEGIN_SRC C
+
+  int Q() {
+    char buf[64];
+    gets(buf);
+    ...
+    return ...;
+  }
+
+  void P() {
+    Q();
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
+[[./res/buffer_overflow3.png]]
+
+ - input string contains byte representation of executable code
+ - overwrite return address A with address of buffer B
+ - when =Q= executes =ret=, will jump to exploit code
+
+
+** Protection
+
+*** Avoid Overflow Vulnerabilities in Code
+
+ - =fgets= instead of =gets=
+ - =strncpy= instead of =strcpy=
+ - don't use =scanf= with =%s= as format string
+   - use =fgets= to read the string
+   - or use =%ns= as format string provided to =scanf=,
+     where n is a suitable integer
+
+*** System Level Protection
+
+ - randomized stack offsets
+   - at start of program, allocate random amount of space on stack
+   - shifts stack address for entire program
+   - makes it difficult for hackers to predict beginning of
+     inserted code
+
+ - nonexecutable code segment
+   - in traditional x86, can mark region of memory as either "read-only"
+     or "writable"
+     - can execute anything readable
+   - x86-64 added explicit "execute permission"
+   - stack marked as non-executable
+
+ - stack canaries
+   - place special value canary on stack beyond buffer
+   - check for corruption before exiting function
+   - GCC implementation
+     - enable with flag =-fstack-protector=
+
+
+*** Return-Oriented Programming Attacks
+
+ - challenge
+   - stack randomization makes it hard to predict buffer location
+   - marking stack nonexecutable makes it hard to insert binary code
+ - alternative strategy
+   - use existing code
+     - library code from stdlib
+   - string together fragments to achieve overall desired outcome
+   - does not overcome stack canaries
+ - construct program from gadgets
+   - sequence of instructions ending in ret
+     - encoded by single byte =0x3c=
+   - code positions fixed from run to run
+   - code is executable
+
+**** Gadget Example
+
+ - use tail end of existing functions
+
+#+BEGIN_SRC C
+
+  long ab_plus_c(long a, long b, long c) {
+    return a*b + c;
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 400px
+[[./res/return_oriented_atk_gadget1.png]]
+
+ - repurpose byte codes
+
+#+BEGIN_SRC C
+
+  void setval(unsigned *p) {
+    *p = 3347663060u;
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 400px
+[[./res/return_oriented_atk_gadget2.png]]
+
 
 * Float
 
@@ -220,17 +338,9 @@ Result
    - e.g. \( \sqrt{-1}, \infty - \infty, \infty \times 0 \)
 
 
-** Summary
+** Visualization
 
 #+ATTR_HTML: :width 500px
 [[./res/floating_point_encoding.png]]
 
 \[ (-1)^{s} M 2^{E} \]
-
-| value type         | condition     | exponent       | significand |
-|--------------------+---------------+----------------+-------------|
-| normalized value   |               | E = Exp - Bias |             |
-|--------------------+---------------+----------------+-------------|
-| denormalized value |               | E = 1 - Bias   |             |
-|--------------------+---------------+----------------+-------------|
-| special value      | exp = 111...1 |                |             |

@@ -15,7 +15,7 @@ towards negative infinity, while in C is to round towards 0.
 The =Int= class has now been corrected to this C int behavior *EXACTLY*.
 
 The =Float= class now provide a member function =Float.decompose=
-to inspect sign/exponent/mantissa of the flaoting point value.
+to inspect sign/exponent/mantissa of the floating point value.
 
 
 * Usage for binutil.py

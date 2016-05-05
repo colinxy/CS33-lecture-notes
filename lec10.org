@@ -5,19 +5,39 @@
 
 * Memory Hiearchy
 
+#+ATTR_HTML: :width 500px
+[[./res/memory_hierarchy.png]]
+
 ** Cache
 
- - cache
+ - cache: a smaller, faster storage device that acts as a staging area
+   for a subset of data in a larger, slower device
+ - fundamental idea of a memory hierarchy
+   - for each k, the faster, smaller device at level k serves as a cache
+     for the larger, slower device at level k+1
+ - why do memory hierarchies work
+   - because of locality, programs tend to access the data at level k
+     more often than they access the data at level k+1
 
+ - *Big Idea*: The memory hierarchy creates a large pool of storage that
+   costs as much as the cheap storage near the bottom, but that serves
+   data to programs at the rate of the fastest storage near the top.
+
+#+ATTR_HTML: :width 500px
+[[./res/cache_concept.png]]
 
 *** Cache Concepts
 
  - hit
+
+#+ATTR_HTML: :width 500px
+[[./res/cache_hit.png]]
+
  - miss
 
-*** Cache Perfoemance Metrics
+#+ATTR_HTML: :width 500px
+[[./res/cache_miss.png]]
 
-*** Cache Friendly Code
 
 *** Memory Mountain
 
@@ -33,3 +53,6 @@
        relatively close storage locations
      - stride
      - size
+
+#+ATTR_HTML: :width 500px
+[[./res/memory_mountain.png]]

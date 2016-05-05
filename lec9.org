@@ -187,3 +187,97 @@
 
 
 * Optimization
+
+** Optimizing Compilers
+
+ - provide efficient mapping of program to machine
+   - register allocation
+   - code selection and ordering (scheduling)
+   - dead code elimination
+   - eliminating minor inefficiencies
+
+ - don't improve asymptotic efficiency
+   - up to programmers to select best overall algorithms
+   - big-O savings are (often) more important than constant factors
+
+ - have difficulty overcoming "optimization blockers"
+   - potiential memory aliasing
+   - potiential procedure side-effect
+
+
+** Generally Useful Optimizations
+
+optimizations that you or the compiler should do regardless of processor/compiler
+
+*** Example of Memory Aliasing
+
+#+BEGIN_SRC C
+
+  void sum_row2(double *a, doubke *b, long n) {
+    long i, j;
+    for (int i = 0; i < n; ++i) {
+      b[i] = 0;
+      for (int j = 0; j < n; ++j)
+        b[i] += a[i*n + j];
+    }
+  }
+
+  void sum_row2(double *a, doubke *b, long n) {
+    long i, j;
+    for (int i = 0; i < n; ++i) {
+      double val = 0;             /* remove memory aliasing */
+      for (int j = 0; j < n; ++j)
+        val += a[i*n + j];
+      b[i] = val;
+    }
+  }
+
+#+END_SRC
+
+ - code updates =b[i]= on every iteration
+ - must consider possiblities that these updates will
+   affect program behavior
+
+
+** Instruction-Level Parallelism
+
+ - need general understanding of modern processor design
+   - hardware can execute multiple instructions in parallel
+ - performance limited by data dependencies
+ - simple transformations can yield dramatic performance improvement
+   - compilers often cannot make these transformations
+   - lack of associativity and distributivity in floating point arithmetic
+
+
+#+ATTR_HTML: :width 500px
+[[./res/modern_cpu_design.png]]
+
+
+** Superscalar Processor
+
+ - Def: a superscalar processor can issue and execute multiple instructions in one cycle.
+   Instructions are retrieved from a sequential instruction stream and are usually scheduled dynamically
+ - Benefit: without programming effort, superscalar processor can
+   take advantage of the instruction level parallelism that most programs have
+ - most modern CPUs are superscalar
+
+*** Pipelined Functional Units
+
+#+BEGIN_SRC C
+
+  long mult_eg(long a, long b, long c) {
+    long p1 = a*b;
+    long p2 = a*c;
+    long p3 = p1*p2;
+    return p3;
+  }
+
+#+END_SRC
+
+ - divide computations into stages
+ - pass partial computations from stage to stage
+ - stage i can start on new computation once values passed to i+1
+ - e.g. complete 3 multiplications in 7 cycles, even though each requires 3 cycles
+
+#+ATTR_HTML: :width 500px
+[[./res/piped_functional_units.png]]

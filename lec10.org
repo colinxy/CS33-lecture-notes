@@ -1,0 +1,35 @@
+#+TITLE: Lecture 10
+#+DATE: <2016-05-04 Wed>
+#+OPTIONS: author:nil
+
+
+* Memory Hiearchy
+
+** Cache
+
+ - cache
+
+
+*** Cache Concepts
+
+ - hit
+ - miss
+
+*** Cache Perfoemance Metrics
+
+*** Cache Friendly Code
+
+*** Memory Mountain
+
+ - read throughput
+   - number of bytes read from memory per second
+ - memory mountain
+   - measured read throughput as a function of spatial and
+     temporal locality
+   - compact way to characterize memory system performance
+     - Temporal locality refers to the reuse of specific data,
+       and/or resources, within a relatively small time duration.
+     - Spatial locality refers to the use of data elements within
+       relatively close storage locations
+     - stride
+     - size

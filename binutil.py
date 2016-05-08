@@ -9,6 +9,8 @@ mimic behavior of C int/float
 from __future__ import division
 import sys
 import struct
+# for compatibility with python2, see Int.__new__ and Float.__new__
+import numbers
 try:
     from string import maketrans  # python 2
 except ImportError:
@@ -110,11 +112,12 @@ class Int(int):
     def __new__(cls, x, bits=32):
         """Int(x: int, bits: int = 32) -> Int
         """
-        if bits <= 0 or not isinstance(bits, int):
+        # for compatibility with python2, (int, long)
+        if bits <= 0 or not isinstance(bits, numbers.Integral):
             raise ArithmeticError(
                 "{} cannot be used as the number of bits for Int".
                 format(bits))
-        if not isinstance(x, int):
+        if not isinstance(x, numbers.Integral):
             raise ArithmeticError(
                 "{} cannot be interpreted as an integer".
                 format(x))
@@ -270,7 +273,8 @@ class Float(float):
     def __new__(cls, x, double=False):
         """Float(x: float, double: bool = False) -> Float
         """
-        if not isinstance(x, (float, int)):
+        # for compatibility with python2, (int, long, float)
+        if not isinstance(x, numbers.Real):
             raise ArithmeticError(
                 "{} cannot be interpreted as a float".
                 format(x))

@@ -56,3 +56,33 @@
 
 #+ATTR_HTML: :width 500px
 [[./res/memory_mountain.png]]
+
+
+** Locality
+
+ - principle of locality
+   - programs tend to use data and instructions with address
+     near or equal to those they have used recently
+ - temporal locality
+   - recent referenced items are likely to be referenced again
+     in the near future
+ - spatial locality
+   - items with nearby addresses tend to be referenced close
+     together in time
+
+*** Example
+
+#+BEGIN_SRC C
+
+  int sum = 0;
+  for (i = 0; i < n; i++)
+    sum += a[i];
+
+#+END_SRC
+
+ - data references
+   - spatial locality: reference array elements in succession (stride-1 reference pattern)
+   - temporal locality: reference variable =sum= each iteration
+ - instruction references
+   - spatial locality: reference instructions in sequence
+   - temporal locality: cycle through loop repeatedly

@@ -1,0 +1,197 @@
+#+TITLE: Lecture 11
+#+DATE: <2016-05-04 Wed>
+#+OPTIONS: author:nil
+
+
+* Matrix Multiplication
+
+ - multiply n \times n matrices
+ - elements are double
+ - O(N^3) total operations
+ - N reads per source element
+ - N values summed per destination
+   - but may be able to hold in register
+
+#+ATTR_HTML: :width 400px
+[[./res/mat_mult.png]]
+
+*** Basic
+
+ - assumptions
+   - block size 32 bytes (4 doubles)
+   - matrix dimension (N) very large
+     - approximate 1 / N as 0.0
+   - cache is not big enough to hold multiple rows
+
+   - n \times n matrix
+
+ - review
+   - assume block size (B) > sizeof (a_{i,j})
+   - C arrays allocated in row-major order
+     - each row in contiguous memory locations
+
+|           | step through columns in 1 row | step through rows in 1 column |
+|-----------+-------------------------------+-------------------------------|
+| access    | access /successive/ elements  | access /distant/ elements     |
+| locality  | spatial locality              | no locality                   |
+| miss rate | sizeof(a_{i,j}) / B           | 1 (100%)                      |
+
+
+*** ijk / jik
+
+#+BEGIN_SRC C
+
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      sum = 0.0;
+      for (k = 0; k < n; k++) {
+        sum += a[i][k] * b[k][j];
+      }
+      c[i][j] = sum;
+    }
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 300px
+[[./res/mat_mult_ijk.png]]
+
+|   | miss per inner loop iteration | explanation                          |
+|---+-------------------------------+--------------------------------------|
+| A |                          0.25 | sizeof(double) / block size = 8 / 32 |
+| B |                           1.0 | step by column, stride too big       |
+| C |                           0.0 | local variable, temporal locality    |
+
+
+*** kij / ikj
+
+#+BEGIN_SRC C
+
+  for (k = 0; k < n; k++) {
+    for (i = 0; i < n; i++) {
+      r = a[i][k];
+      for (j = 0; j < n; j++) {
+        c[i][j] += r * b[k][j];
+      }
+    }
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 300px
+[[./res/mat_mult_kij.png]]
+
+|   | miss per inner loop iteration | explanation                          |
+|---+-------------------------------+--------------------------------------|
+| A |                           0.0 | local variable, temporal locality    |
+| B |                          0.25 | sizeof(double) / block size = 8 / 32 |
+| C |                          0.25 | sizeof(double) / block size = 8 / 32 |
+
+*** jki / kji
+
+#+BEGIN_SRC C
+
+  for (j = 0; j < n; j++) {
+    for (k = 0; k < n; k++) {
+      r = b[k][j];
+      for (i = 0; i < n; i++) {
+        c[i][j] += a[i][k] * r:
+      }
+    }
+  }
+
+#+END_SRC
+
+#+ATTR_HTML: :width 300px
+[[./res/mat_mult_jki.png]]
+
+|   | miss per inner loop iteration | explanation                       |
+|---+-------------------------------+-----------------------------------|
+| A |                           1.0 | step by column, stride too big    |
+| B |                           0.0 | local variable, temporal locality |
+| C |                           1.0 | stride too big, always miss       |
+
+*** Summary
+
+|                      | ijk / jik          | kij / ikj         | jki / kji         |
+|----------------------+--------------------+-------------------+-------------------|
+| loads & stores       | 2 loads, 0 strores | 2 loads, 0 stores | 2 loads, 1 stores |
+| misses per iteration | 1.25               | 0.5               | 2.0               |
+
+
+** Matrix Multiplication Without Block
+
+#+BEGIN_SRC C
+
+  void mmm(double *a, double *b, double *c, int n) {
+    int i, j, k;
+    for (i = 0; i < n; i++)
+      for (j = 0; j < n; j++)
+        for (k = 0; k < n; k++)
+          c[i*n + j] += a[i*n + k] * b[k*n + j];
+  }
+
+#+END_SRC
+
+*** Cache Miss Analysis
+
+ - assume
+   - matrix elements are double
+   - cache block = 8 doubles (64)
+   - cache size C much smaller than n
+
+ - misses each iteration
+   - n / 8 + n = 9n/8
+ - total miss
+   - 9n/8 \times n^{2} = (9/8) \times n^{3}
+
+#+ATTR_HTML: :width 500px
+[[./res/mat_mult_no_block.png]]
+
+
+** Blocked Matrix Multiplication
+
+#+BEGIN_SRC C
+
+  void mmm(double *a, double *b, double *c, int n) {
+    int i, j, k, i1, j1, k1;
+    for (i = 0; i < n; i += B)
+      for (j = 0; j < n; j += B)
+        for (k = 0; k < n ; k += B)
+            /* B by B mini matrix multiplications */
+          for (i1 = i ; i1 < i+B; i1++)
+            for (j1 = j; j1 < j+B; j1++)
+              for (k1 = k; k1 < k+B; k1++)
+                c[i1*n + j1] += a[i1*n + k1] * b[k1*n + j1];
+  }
+
+#+END_SRC
+
+ - assume
+   - cache block = 8 doubles
+   - cache size C much smaller than n
+   - (n/B) \times (n/B) as a mini matrix, B \times B mini matrix multiplications
+   - 3 blocks can fit into cache: 3B^{2} < C
+
+ - misses per iteration
+   - B^{2}/8 misses per block
+   - 2n/B \times B^{2}/8 = nB/4  (omitting matrix c)
+
+ - total misses
+   - nB/4 \times (n/B)^{2} = n^{3}/(4B)
+
+#+ATTR_HTML: :width 500px
+[[./res/mat_mult_block.png]]
+
+
+*** Summary
+
+ - no blocking: (9/8) \times n^{3}
+ - blocking: 1/(4B) \times n^{3}
+
+ - B has limit 3B^{2} < C
+
+ - reason for dramatic difference
+
+
+* OpenMP

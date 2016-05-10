@@ -214,8 +214,8 @@ representation.
 
 #+END_SRC
 
-Combining =Int= class and =Float= class in one arithmetic expression
-will lose the binary representation.
+*NOTE*: Combining =Int= class and =Float= class in one arithmetic
+expression will lose the binary representation.
 
 
 Happy hacking binary numbers!

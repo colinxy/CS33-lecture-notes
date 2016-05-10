@@ -332,10 +332,9 @@ class Float(float):
         # mantissa
         frac_size = len(byte_rep[2])
         frac = int(byte_rep[2], 2)
-        if exp == 0:
-            mantissa = frac / (1 << frac_size)
-        else:
-            mantissa = (frac + (1 << frac_size)) / (1 << frac_size)
+        mantissa = frac / (1 << frac_size)
+        if exp != 0:
+            mantissa += 1
 
         return (sign, exponent, mantissa)
 

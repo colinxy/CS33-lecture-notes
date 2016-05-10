@@ -192,6 +192,24 @@
  - B has limit 3B^{2} < C
 
  - reason for dramatic difference
+   - matrix multiplication has inherent temporal locality
+     - input data: 3n^{2}, computation 2n^{3}
+     - every element used O(n) times
+   - but program has to be written properly
+
+
+** Summary
+
+ - the speed gap between CPU, memory and mass storage continues to widen
+ - well written programs exhibit a property called *locality*
+ - memory hierarchies based on caching close the gap by exploiting locality
+   - cache memories can have significant performance impact
+ - you can write your programs to exploit this
+   - focus on the inner loops, where bulk of computations and memory accesses occur
+   - try to maximize /spatial locality/ by reading data objects
+     with sequentially with stride 1
+   - try to maximize /temporal locality/ by using data objects
+     as often as possible once it's read from memory
 
 
 * OpenMP

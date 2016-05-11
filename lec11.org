@@ -213,3 +213,90 @@
 
 
 * OpenMP
+
+ - OpenMP is one of the most common parallel programming models in use today
+
+** Concurrency vs. Parallelism
+
+ - _concurrency_
+   - a condition of a system in which multiple tasks are
+     /logically/ active at one time
+ - _parallelism_
+   - a condition of a system in which multiple tasks are
+     /actually/ active at one time
+
+#+ATTR_HTML: :width 400px
+[[./res/concurrency_parallelism.png]]
+
+ - _concurrent application_
+   - an application for which computations /logically/ execute
+     simultaneously due to the semantics of the application
+ - _parallel application_
+   - an application for which the computations /actually/ execute
+     simultaneously in order to complete a problem in less time
+
+** OpenMP
+
+ - an API for writing multithreaded applications
+   - a set of compiler directives and library
+     routines for parallel application programmers
+   - greatly simplifies writing multi-threaded
+     programs in Fortran, C and C++
+
+ - compiler directives
+   ~#pragma omp contruct [clause [clause] ... ]~
+ - function prototypes and types in the file =omp.h=
+
+#+BEGIN_SRC C
+
+  #pragma omp parallel num_threads(4)
+  #include <omp.h>
+
+#+END_SRC
+
+ - most OpenMP constructs apply to a structured block
+   - structured block
+     - a block of one or more statements with one point of
+       entry at the top and one point of exit at the bottom
+     - it's OK to have an =exit()= within the structured block
+
+ - compiler flag
+   - ~gcc -fopenmp foo.c~
+   - ~export OMP_NUM_THREADS=4~ (for bash shell)
+
+*** Example
+
+#+BEGIN_SRC C
+
+  #include <omp.h>
+
+  int main() {
+
+      #pragma omp parallel
+      {
+          int ID = omp_get_thread_num();
+          printf("hello(%d) ", ID);
+          printf("world(%d)\n", ID);
+      }
+  }
+
+#+END_SRC
+
+*** Shared Memory
+
+ - shared memory computer
+   - any computer composed of multiple processing elements that share an address space
+     - symmetric multiprocessor (SMP)
+       - a shared address space with "equal-time" access for each processor,
+         and the OS treats evry processor the same way
+     - non uniform address space multiprocessor (NUMA)
+       - different memory regions have different access costs ...
+         think of memory segmented into "near" and "far" memory
+
+ - shared memory program
+   - an instance of a program
+     - one process and lots of threads
+     - threads interact through reads/writes to a shared address space
+     - OS scheduler decides when to run which threads
+       - interleaved for fairness
+     - synchronization to assure every legal order results in correct results

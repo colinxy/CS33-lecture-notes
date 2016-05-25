@@ -1,0 +1,67 @@
+#+TITLE: Lecture 12
+#+DATE: <2016-05-23 Mon>
+#+OPTIONS: author:nil
+
+
+* MIPS
+
+ - ISA: instruction set architecture
+   - =REG=
+   - =MEM=
+   - =Instructions=
+
+ - CISC: complex instruction set computer
+   - variable length instructions
+
+ - RISC: reduced instruction set computer
+
+
+** MIPS: an example of RISC
+
+ - all instructions are 32-bit
+ - following an opcode
+
+#+BEGIN_EXAMPLE
+
+  I-Type:
+
+      6        5         5         16
+  +-------+---------+---------+-----------+
+  |  opc  |    RS   |    RT   |   IMM     |
+  +-------+---------+---------+-----------+
+   opcode     src      target   immediate
+           register   register
+
+          (register specifier)
+
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+
+  R-Type
+
+      6        5         5        5        5          6
+  +-------+---------+---------+--------+--------+------------+
+  |  opc  |    RS   |    RT   |   RD   |   SA   |  Function  |
+  +-------+---------+---------+--------+--------+------------+
+   opcode     src      target
+           register   register
+         (register specifier)
+
+
+#+END_EXAMPLE
+
+ - opcode
+   - ARITHMETIC: only operate on registers
+   - MEMORY TRANSFER: load word, store word
+     - addressing: base + displacement
+
+   - I-Type instructions: same opcode
+     - load word, store word
+
+   - R-Type instructions: different opcode
+     - add, and, or, etc.
+
+   - control type instructions
+     - I-Type control: =op(6) + RS(5) + RT(5) + IMM(5)=
+     - J-Type control: =op(6) + immediate(26)=

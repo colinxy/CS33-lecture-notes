@@ -32,7 +32,7 @@
    opcode     src      target   immediate
            register   register
 
-          (register specifier)
+           (register specifier)
 
 #+END_EXAMPLE
 
@@ -46,7 +46,7 @@
   +-------+---------+---------+--------+--------+------------+
    opcode     src      target
            register   register
-         (register specifier)
+           (register specifier)
 
 
 #+END_EXAMPLE

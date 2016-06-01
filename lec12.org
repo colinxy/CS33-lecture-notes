@@ -15,11 +15,35 @@
 
  - RISC: reduced instruction set computer
 
+|                     | RISC      | CISC             |
+|---------------------+-----------+------------------|
+| registers           | 32        | 6, 8, 16         |
+| register class      | 1         | some             |
+| arithmetic operands | registers | memory+registers |
+| instructions        | 3-addr    | 2-addr           |
+| addressing modes    | r; M[r+c] | several          |
+| instruction length  | 32 bits   | variable         |
+| side effect         | none      | some             |
+| instruction cost    | uniform   | varied           |
 
-** MIPS: an example of RISC
+
+** MIPS: example of RISC
 
  - all instructions are 32-bit
  - following an opcode
+
+
+** Main Types of Instructions
+
+ - arithmetic
+   - integer
+   - floating point
+ - memory access instructions
+   - load & store
+ - control flow
+   - jump
+   - conditional jump
+   - call & return
 
 #+BEGIN_EXAMPLE
 
@@ -30,9 +54,10 @@
   |  opc  |    RS   |    RT   |   IMM     |
   +-------+---------+---------+-----------+
    opcode     src      target   immediate
-           register   register
+            register  register
 
-           (register specifier)
+  example:
+  add     $rt, $rs, immed
 
 #+END_EXAMPLE
 
@@ -44,24 +69,210 @@
   +-------+---------+---------+--------+--------+------------+
   |  opc  |    RS   |    RT   |   RD   |   SA   |  Function  |
   +-------+---------+---------+--------+--------+------------+
-   opcode     src      target
-           register   register
-           (register specifier)
+   opcode   source     source    dest     shift
+           register   register  register  amount
 
+  example:
+  add     $rd, $rs, $rt
 
 #+END_EXAMPLE
 
- - opcode
-   - ARITHMETIC: only operate on registers
-   - MEMORY TRANSFER: load word, store word
-     - addressing: base + displacement
+#+BEGIN_EXAMPLE
 
-   - I-Type instructions: same opcode
-     - load word, store word
+  J-Type
 
-   - R-Type instructions: different opcode
-     - add, and, or, etc.
+      6        26
+  +-------+----------+
+  |  opc  |  target  |
+  +-------+----------+
+   opcode    pseudo
+             address
 
-   - control type instructions
-     - I-Type control: =op(6) + RS(5) + RT(5) + IMM(5)=
-     - J-Type control: =op(6) + immediate(26)=
+  example:
+  j       Label
+
+#+END_EXAMPLE
+
+ - I-Type instructions
+   - load word, store word
+   - arithmetic with immediate
+ - R-Type instructions
+   - arithmetic: add, and, or, etc.
+ - control type instructions
+   - I-Type control: =op(6) + RS(5) + RT(5) + IMM(5)=
+   - J-Type control: =op(6) + immediate(26)=
+
+
+*** Arithmetic
+
+ - most instructions have 3 operand
+ - arithmetic operands are registers, not memory
+ - operand order is fixed (destination first)
+ - e.g. =add $s0,$s1,$s2=
+
+#+BEGIN_SRC C
+
+  A = B + C + D;
+  E = F - A;
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+          add     $t0, $s1, $s2
+          add     $s0, $t0, $s3
+          sub     $s4, $s5, $s0
+
+#+END_SRC
+
+
+*** Load and Store (Data Transfer): I-Type Instructions
+
+#+BEGIN_SRC C
+
+  A[8] = h + A[8];
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+          lw      $t0, 32($s3)
+          add     $t0, $s2, $t0
+          sw      $t0, 32($s3)
+
+#+END_SRC
+
+ - store word operation has no destination (register) operand
+
+| instructions  | explanation           |
+|---------------+-----------------------|
+| =li $v0, 4=   | $v0 <- 4              |
+| =la $a0, msg= | $a0 <- address of msg |
+| =lw $t0, x=   | $t0 <- x              |
+| =sw $t0, y=   | y <- $t0              |
+
+ - =la=, =li=
+   - since a label represents a fixed memory address after assembly,
+     =la= is actually a special case of =li= (load immediate)
+ - =lw=, =la=
+   - e.g. x at address 10, contains 2
+     - =la $a0, x= : $a <- 10
+     - =lw $a0, x= : $a0 <- 2
+ - =lw $t0 8($sp)=
+
+
+*** Control
+
+ - decision making instructions
+   - alter control flow
+   - change the "next" instruction to be executed
+
+#+BEGIN_SRC C
+
+  if (i == j)
+      h = i + j;
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+          bne     $t0, $t1, Label
+          add     $s3, $s0, $s1
+  Label:
+
+#+END_SRC
+
+ - conditional branch: I-Type Instructions
+ - unconditional branch: J-Type Instructions
+
+| instructions | explanation                                                                             |
+|--------------+-----------------------------------------------------------------------------------------|
+| =jal proc=   | jump and link, start procedure proc, =$ra= holds address of instruction following =jal= |
+| =jr $ra=     | jump register, return from procedure call puts =$ra= value back into PC                 |
+
+ - address in branches
+   - I-Type:
+     - specify a register and add it to address
+       - use instruction address register
+       - most branches are local
+
+
+** MIPS Examples
+
+#+CAPTION: MIPS compiler conventions
+| name      | register number | usage                                        |
+|-----------+-----------------+----------------------------------------------|
+| =$zero=   |               0 | the constant value 0                         |
+| =$v0-$v1= |             2-3 | values for results and expression evaluation |
+| =$a0-$a3= |             4-7 | arguments                                    |
+| =$t0-$t7= |            8-15 | temporaries                                  |
+| =$s0-$s7= |           16-23 | saved (by callee)                            |
+| =$t8-$t9= |           24-25 | more temporaries                             |
+| =$gp=     |              28 | global pointer                               |
+| =$sp=     |              29 | stack pointer                                |
+| =$fp=     |              30 | frame pointer                                |
+| =$ra=     |              31 | return address                               |
+
+#+CAPTION: System Calls
+| service       | code | arguments                             | result         |
+|---------------+------+---------------------------------------+----------------|
+| print integer |    1 | $a0 = integer                         | console print  |
+| print string  |    4 | $a0 = string addr                     | console print  |
+| read integer  |    5 |                                       | $a0 = result   |
+| read string   |    8 | $a0 = string addr, $a1 = length limit | console read   |
+| exit          |   10 |                                       | end of program |
+
+
+#+BEGIN_SRC asm
+
+          ;; R-Type
+          add     $s1, $s2, $s3
+          sub     $s1, $s2, $s3
+          ;; I-Type
+          lw      $s1, 100($s2)
+          sw      $s1, 100($s2)
+          bne     $s4, $s5, Label
+          beq     $s4, $s5, Label
+          ;; J-Type
+          j       Label
+
+#+END_SRC
+
+
+*** Example
+
+#+BEGIN_SRC C
+
+  void swap(int v[], int k) {
+      int temp;
+      temp = v[k];
+      v[k] = v[k+1];
+      v[k+1] = temp;
+  }
+
+#+END_SRC
+
+#+BEGIN_SRC asm
+
+  swap:
+          multi   $2, $5, 4
+          add     $2, $4, $2
+          lw      $15, 0($2)
+          lw      $16, 4($2)
+          sw      $16, 0($2)
+          sw      $16, 4($2)
+          jr      $31
+
+#+END_SRC
+
+| variable | register |
+|----------+----------|
+| =k=      | =$5=     |
+| =v=      | =$4=     |
+| =&v[k]=  | =$2=     |
+
+
+*** Summary
+
+#+ATTR_HTML: :width 700px
+[[./res/mips.png]]

@@ -82,10 +82,10 @@
  - a page table is an array of page table entries (PTEs) that
    maps virtual pages to physical pages
 
-#+ATTR_HTML: :width 400px
+#+ATTR_HTML: :width 500px
 [[./res/page_table.png]]
 
-#+ATTR_HTML: :width 400px
+#+ATTR_HTML: :width 600px
 [[./res/page_table_translation.png]]
 
 
@@ -179,7 +179,7 @@
        - either re-executes faulting ("current") instruction or aborts
      - aborts
        - unintentional and unrecoverable
-       - example: pariy error, machine check
+       - example: parity error, machine check
        - aborts current program
 
 **** Read A Disk Sector (asynchronous)
@@ -200,6 +200,9 @@
 ** Linking
 
 *** Static Linking
+
+#+ATTR_HTML: :width 400px
+[[./res/static_linking.png]]
 
  - programs are translated and linked using a compiler driver
 
@@ -242,3 +245,6 @@
 
 
 *** Dynamic Linking
+
+#+ATTR_HTML: :width 600px
+[[./res/dynamic_linking.png]]

@@ -228,7 +228,7 @@
 *** Three Kinds of Object Files
 
  - relocatable object file (=.o=)
-   - contain code and data ina form that can be combined with
+   - contain code and data in a form that can be combined with
      other relocatable object files to form executable obejct files
    - each =.o= file is produced from exactly one source file
  - executable object file
@@ -240,8 +240,34 @@
    - called dynamic link libraries (dll) by windows
 
 
-*** Static Libraries
+*** Static Libraries (=.a= archives) vs. Shared Libraries (=.so=)
 
+**** Static Libraries
+
+ - concatenate related relocated object files into a single file with an index
+ - enhance linker so that it tries to resolve unresolved external references
+   by looking for the symbols in one or more archives
+ - if an archive member file resolves reference, link into executable
+
+ - disadvantage:
+   - duplication in the stored executables (every function need stdlibc)
+   - duplication in the running executables
+   - minor bug fixes of system require each application to explicitly relink
+
+**** Shared Libraries
+
+ - object files that contain code and data that are loaded and linked into an
+   application dynamically, at either load-time or run-time
+ - also called: dynamic link libraries, DLLs, .so files
+
+**** Shared Libraries and Dynamic Linking
+
+ - dynamic linking occur when executable is first loaded and run (*load-time linking*)
+   - common case for Linux, handled automatically by the dynamic linker
+   - standard C library (libc.so) usually dynamically linked
+
+ - dynamic linking can also occur after program has begun (*run-time linking*)
+   - in unix, this is done by calls to the =dlopen= interface
 
 
 *** Dynamic Linking

@@ -209,7 +209,40 @@
 
 optimizations that you or the compiler should do regardless of processor/compiler
 
+*** Procedure Calls
+
+ - procedure may have side effects
+   - alter global state each time called
+ - function may not return same value for given arguments
+   - depends on other parts of global state
+   - procedure =lower= could interact with =strlen=
+
+#+BEGIN_SRC C
+
+  void lower(char *s) {
+      size_t i;
+      for (i = 0; i < strlen(s); i++)
+          if (s[i] >= 'A' && s[i] <= 'Z')
+              s[i] -= 'A' - 'a';
+  }
+
+#+END_SRC
+
+ - =strlen= called multiple times
+ - move =strlen= outside of loop, since result does not change
+   from 1 iteration to another
+
+
 *** Example of Memory Aliasing
+
+ - aliasing
+   - 2 different memory references specify single location
+   - easy to happen in C
+     - since allowed to do address arithmetic
+     - direct access to storage structures
+   - git in habit of introducing local variables
+     - accumulating within loops
+     - your way of telling compiler not to check for aliasing
 
 #+BEGIN_SRC C
 
@@ -277,7 +310,8 @@ optimizations that you or the compiler should do regardless of processor/compile
  - divide computations into stages
  - pass partial computations from stage to stage
  - stage i can start on new computation once values passed to i+1
- - e.g. complete 3 multiplications in 7 cycles, even though each requires 3 cycles
+ - e.g. complete 3 multiplications in 7 cycles,
+   even though each requires 3 cycles (9 cycles in total)
 
 #+ATTR_HTML: :width 500px
 [[./res/piped_functional_units.png]]

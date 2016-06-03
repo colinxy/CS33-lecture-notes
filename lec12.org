@@ -197,7 +197,9 @@
        - most branches are local
 
 
-** MIPS Examples
+** MIPS Miscellaneous & Examples
+
+*** MIPS compiler conventions
 
 #+CAPTION: MIPS compiler conventions
 | name      | register number | usage                                        |
@@ -212,6 +214,8 @@
 | =$sp=     |              29 | stack pointer                                |
 | =$fp=     |              30 | frame pointer                                |
 | =$ra=     |              31 | return address                               |
+
+*** System Calls
 
 #+CAPTION: System Calls
 | service       | code | arguments                             | result         |

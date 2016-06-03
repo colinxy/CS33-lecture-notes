@@ -36,6 +36,7 @@
 |              | =0= | =1110= | =111= |   7 | 240   | largest norm       |
 |              | =0= | =1111= | =000= | n/a | inf   |                    |
 
+
 ** Distribution of Values
 
  - 6-bits IEEE-like format
@@ -66,6 +67,7 @@
      - denormalized vs normalized
      - normalized vs infinity
 
+
 ** Floating Point Operation
 
  - basic idea
@@ -86,7 +88,7 @@
 | nearest even       | =1=    | =2=    | =2=    | =2=    | =-2=    |
 
  - round-to-even: default rounding mode
-   - hard to get any other kind wothout dropping into assembly
+   - hard to get any other kind without dropping into assembly
    - all other are statistically biased
      - sum of set of positive numbers will consistently
        be over or under estimated

@@ -286,7 +286,7 @@ optimizations that you or the compiler should do regardless of processor/compile
 [[./res/modern_cpu_design.png]]
 
 
-** Superscalar Processor
+*** Superscalar Processor
 
  - Def: a superscalar processor can issue and execute multiple instructions in one cycle.
    Instructions are retrieved from a sequential instruction stream and are usually scheduled dynamically
@@ -315,3 +315,44 @@ optimizations that you or the compiler should do regardless of processor/compile
 
 #+ATTR_HTML: :width 500px
 [[./res/piped_functional_units.png]]
+
+
+*** Loop Unrolling
+
+ - loop unrolling: perform more useful work per iteration
+
+#+BEGIN_SRC C
+
+  for (i = 0; i < limit; i += 2)
+      x = (x OP d[i]) OP d[i+1];
+
+  /* loop unrolling with reassociation */
+  for (i = 0; i < limit; i += 2)
+      x = x OP (d[i] OP d[i+1]);
+
+  /* loop unrolling with separate accumulators */
+  for (i = 0; i < limit; i += 2) {
+      x0 = x0 OP d[i];
+      x1 = x1 OP d[i+1];
+  }
+
+#+END_SRC
+
+ - loop unrolling
+   - helps integers add
+   - still sequential dependency
+ - loop unrolling with reassociation
+   - faster for floating point
+   - nearly 2X speedup for =int *=, =float +=, =float *=
+   - breaks sequential dependency
+ - loop unrolling with separate accumulators
+   - =int += makes use of 2 load units
+   - 2X speedup (over loop unrolling) for =int *=, =float +=, =float *=
+
+#+ATTR_HTML: :width 300px
+#+ATTR_LATEX: :width 200px
+[[./res/loop_unrolling_reassociation.png]]
+
+#+ATTR_HTML: :width 300px
+#+ATTR_LATEX: :width 200px
+[[./res/loop_unrolling_separate_accumulators.png]]
